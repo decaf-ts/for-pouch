@@ -100,7 +100,19 @@
     "typescript": "^5.6.3",
     "typescript-eslint": "^8.12.2",
     "vinyl-named": "^1.1.0",
-    "webpack-stream": "^7.0.0"
+    "webpack-stream": "^7.0.0",
+    "@types/pouchdb": "^6.4.2",
+    "@types/pouchdb-core": "^7.0.15",
+    "@types/transform-pouch": "^1.0.6",
+    "pouchdb-mapreduce": "^9.0.0",
+    "pouchdb-replication": "^9.0.0",
+    "transform-pouch": "^2.0.0",
+    "pouchdb-adapter-http": "^9.0.0",
+    "pouchdb-adapter-idb": "^9.0.0",
+    "pouchdb-adapter-leveldb": "^9.0.0",
+    "pouchdb-adapter-localstorage": "^9.0.0",
+    "pouchdb-adapter-memory": "^9.0.0",
+    "pouchdb-adapter-websql": "^7.0.0"
   },
   "peerDependencies": {
     "@decaf-ts/core": "latest",
@@ -108,6 +120,8 @@
     "@decaf-ts/decorator-validation": "latest",
     "@decaf-ts/for-couchdb": "latest",
     "@decaf-ts/injectable-decorators": "latest",
-    "@decaf-ts/reflection": "latest"
+    "@decaf-ts/reflection": "latest",
+    "pouchdb-core": "^9.0.0",
+    "pouchdb-find": "^9.0.0"
   }
 }
