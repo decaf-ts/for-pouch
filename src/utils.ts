@@ -1,5 +1,6 @@
 import Database = PouchDB.Database;
 import {
+  BulkFetchDocsWrapper,
   BulkModifyDocsWrapper,
   CreateIndexRequest,
   CreateIndexResponse,
@@ -12,21 +13,26 @@ import {
   MangoQuery,
   MangoResponse,
   ServerScope,
+  DocumentFetchResponse,
 } from "@decaf-ts/for-couchdb";
 import FindRequest = PouchDB.Find.FindRequest;
+import BulkGetResponse = PouchDB.Core.BulkGetResponse;
+import { InternalError } from "@decaf-ts/db-decorators";
 
 export function toServerScope(pouch: typeof PouchDB) {
   return new (class implements ServerScope {
-    constructor(private pouch: typeof PouchDB) {}
+    constructor(public pouch: typeof PouchDB) {}
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     use<D>(db: string): DocumentScope<D> {
       throw new Error("Method not implemented.");
     }
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     auth(username: string, userpass: string): Promise<DatabaseAuthResponse> {
       throw new Error("Method not implemented.");
     }
+
     session(): Promise<DatabaseSessionResponse> {
       throw new Error("Method not implemented.");
     }
@@ -35,7 +41,26 @@ export function toServerScope(pouch: typeof PouchDB) {
 
 export function toDocumentScope(database: Database) {
   return new (class implements DocumentScope<any> {
-    constructor(private db: Database) {}
+    constructor(public db: Database) {}
+
+    async fetch(
+      docnames: BulkFetchDocsWrapper
+    ): Promise<DocumentFetchResponse<any>> {
+      const result: BulkGetResponse<any> = await this.db.bulkGet({
+        docs: docnames.keys.map((k) => ({ id: k })),
+      });
+      return {
+        offset: 0,
+        rows: result.results.map((r) =>
+          r.docs.map((d) => {
+            if ((d as any)["error"])
+              throw new InternalError((d as any)["error"]);
+            return (d as any)["ok"];
+          })
+        ) as any,
+        total_rows: 0,
+      };
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     auth(username: string, userpass: string): Promise<DatabaseAuthResponse> {
@@ -70,6 +95,8 @@ export function toDocumentScope(database: Database) {
     find(query: MangoQuery): Promise<MangoResponse<any>> {
       return this.db.find(query as unknown as FindRequest<any>);
     }
-    server: ServerScope;
+    get server() {
+      return this.db as unknown as ServerScope;
+    }
   })(database);
 }

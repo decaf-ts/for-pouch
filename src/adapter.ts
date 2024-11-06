@@ -4,7 +4,7 @@ import { InternalError } from "@decaf-ts/db-decorators";
 import { User } from "@decaf-ts/core";
 
 export class PouchAdapter extends CouchDBAdapter {
-  constructor(scope: DocumentScope<any>, flavour: string) {
+  constructor(scope: DocumentScope<any>, flavour: string = "pouch") {
     super(scope, flavour);
   }
 

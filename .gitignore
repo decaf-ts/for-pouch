@@ -11,3 +11,5 @@
 /.token
 /.npmtoken
 /node_modules
+/local_dbs
+!/local_dbs/.gitlock
