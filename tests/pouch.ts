@@ -25,11 +25,13 @@ async function setupBasicPouch() {
   }
 }
 
-export async function getHttpPouch(dbName: string) {
+export async function getHttpPouch(dbName: string, user: string, pass: string) {
   await setupBasicPouch();
   const pouchHttp = await normalizeImport(import("pouchdb-adapter-http"));
   PouchDB.plugin(pouchHttp);
-  return toDocumentScope(new PouchDB(`${protocol}://${apiEndpoint}/${dbName}`));
+  return toDocumentScope(
+    new PouchDB(`${protocol}://${user}:${pass}@${apiEndpoint}/${dbName}`)
+  );
 }
 
 export async function getLocalPouch(dbName: string) {

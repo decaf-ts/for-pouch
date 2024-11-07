@@ -14,10 +14,12 @@ import {
   MangoResponse,
   ServerScope,
   DocumentFetchResponse,
+  CouchDBAdapter,
 } from "@decaf-ts/for-couchdb";
 import FindRequest = PouchDB.Find.FindRequest;
 import BulkGetResponse = PouchDB.Core.BulkGetResponse;
 import { InternalError } from "@decaf-ts/db-decorators";
+import { PouchAdapter } from "./adapter";
 
 export function toServerScope(pouch: typeof PouchDB) {
   return new (class implements ServerScope {
@@ -73,7 +75,12 @@ export function toDocumentScope(database: Database) {
       return this.db.put(document);
     }
     get(docname: string, params?: DocumentGetParams | undefined): Promise<any> {
-      return this.db.get(docname, params);
+      return new Promise<any>((resolve, reject) => {
+        this.db.get(docname, params || {}, (err, result) => {
+          if (err) return reject(err);
+          resolve(result);
+        });
+      });
     }
     destroy(docname: string, rev: string): Promise<DocumentDestroyResponse> {
       return this.db.remove({ _id: docname, _rev: rev });

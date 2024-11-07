@@ -1,6 +1,6 @@
 import { ServerScope } from "nano";
 import { PersistenceKeys, Repository } from "@decaf-ts/core";
-import { Model } from "@decaf-ts/decorator-validation";
+import { Model, password } from "@decaf-ts/decorator-validation";
 import { TestModel } from "../TestModel";
 import { ConflictError, NotFoundError } from "@decaf-ts/db-decorators";
 import { NanoAdapter } from "@decaf-ts/for-nano";
@@ -34,7 +34,7 @@ describe("Adapter Integration", () => {
       if (!(e instanceof ConflictError)) throw e;
     }
     con = NanoAdapter.connect(user, user_password, dbHost);
-    const db = await getHttpPouch(dbName);
+    const db = await getHttpPouch(dbName, user, user_password);
     adapter = new PouchAdapter(db);
     repo = new Repository<TestModel>(adapter, TestModel);
   });
