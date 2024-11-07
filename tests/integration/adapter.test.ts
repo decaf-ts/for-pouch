@@ -1,6 +1,6 @@
 import { ServerScope } from "nano";
 import { PersistenceKeys, Repository } from "@decaf-ts/core";
-import { Model, password } from "@decaf-ts/decorator-validation";
+import { Model } from "@decaf-ts/decorator-validation";
 import { TestModel } from "../TestModel";
 import { ConflictError, NotFoundError } from "@decaf-ts/db-decorators";
 import { NanoAdapter } from "@decaf-ts/for-nano";

@@ -19,8 +19,9 @@ import { Condition, Repository } from "@decaf-ts/core";
 import { sequenceNameForModel } from "@decaf-ts/core";
 import { Sequence } from "@decaf-ts/core";
 import { Sequence as Seq } from "@decaf-ts/for-couchdb";
-import { CouchDBAdapter, wrapDocumentScope } from "@decaf-ts/for-couchdb";
 import { NanoAdapter } from "@decaf-ts/for-nano";
+import { PouchAdapter } from "../../src";
+import { getHttpPouch } from "../pouch";
 
 const admin = "couchdb.admin";
 const admin_password = "couchdb.admin";
@@ -31,14 +32,14 @@ const dbHost = "localhost:10010";
 
 Model.setBuilder(Model.fromModel);
 
-jest.setTimeout(500000);
+jest.setTimeout(50000);
 
-describe(`Complex Database`, function () {
+describe("Adapter Integration", () => {
   let con: ServerScope;
-  let adapter: CouchDBAdapter;
+  let adapter: PouchAdapter;
 
   beforeAll(async () => {
-    con = NanoAdapter.connect(admin, admin_password, dbHost);
+    con = await NanoAdapter.connect(admin, admin_password, dbHost);
     expect(con).toBeDefined();
     try {
       await NanoAdapter.createDatabase(con, dbName);
@@ -47,10 +48,8 @@ describe(`Complex Database`, function () {
       if (!(e instanceof ConflictError)) throw e;
     }
     con = NanoAdapter.connect(user, user_password, dbHost);
-    adapter = new NanoAdapter(
-      wrapDocumentScope(con, dbName, user, user_password),
-      "nano"
-    );
+    const db = await getHttpPouch(dbName, user, user_password);
+    adapter = new PouchAdapter(db);
   });
 
   afterAll(async () => {
@@ -70,7 +69,7 @@ describe(`Complex Database`, function () {
   let model: any;
 
   beforeAll(async () => {
-    sequenceRepository = Repository.forModel(Seq);
+    sequenceRepository = Repository.forModel(Seq, adapter.flavour);
     expect(sequenceRepository).toBeDefined();
 
     userRepository = new Repository(adapter, TestUserModel);

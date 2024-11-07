@@ -14,12 +14,10 @@ import {
   MangoResponse,
   ServerScope,
   DocumentFetchResponse,
-  CouchDBAdapter,
 } from "@decaf-ts/for-couchdb";
 import FindRequest = PouchDB.Find.FindRequest;
 import BulkGetResponse = PouchDB.Core.BulkGetResponse;
 import { InternalError } from "@decaf-ts/db-decorators";
-import { PouchAdapter } from "./adapter";
 
 export function toServerScope(pouch: typeof PouchDB) {
   return new (class implements ServerScope {
@@ -49,17 +47,19 @@ export function toDocumentScope(database: Database) {
       docnames: BulkFetchDocsWrapper
     ): Promise<DocumentFetchResponse<any>> {
       const result: BulkGetResponse<any> = await this.db.bulkGet({
-        docs: docnames.keys.map((k) => ({ id: k })),
+        docs: docnames.keys.map((k: string) => ({ id: k })),
       });
       return {
         offset: 0,
-        rows: result.results.map((r) =>
-          r.docs.map((d) => {
+        rows: result.results.reduce((accum: any[], r) => {
+          const docs: any[] = r.docs.map((d) => {
             if ((d as any)["error"])
               throw new InternalError((d as any)["error"]);
-            return (d as any)["ok"];
-          })
-        ) as any,
+            return (d as any)["ok"] as any;
+          });
+          accum.push(...docs);
+          return accum;
+        }, []),
         total_rows: 0,
       };
     }
@@ -86,8 +86,16 @@ export function toDocumentScope(database: Database) {
       return this.db.remove({ _id: docname, _rev: rev });
     }
     async bulk(docs: BulkModifyDocsWrapper): Promise<DocumentInsertResponse[]> {
-      const results = await this.db.allDocs({ keys: docs.docs });
-      return results.rows as any;
+      const results = await this.db.bulkDocs(docs.docs);
+      return results.map((r) => {
+        if (r instanceof Error) return { ok: false };
+        return Object.assign(
+          {
+            ok: true,
+          },
+          r
+        );
+      }) as DocumentInsertResponse[];
     }
     async createIndex(
       indexDef: CreateIndexRequest

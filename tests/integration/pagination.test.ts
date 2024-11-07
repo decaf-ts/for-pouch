@@ -3,8 +3,9 @@ import { ServerScope } from "nano";
 import { ConflictError, InternalError } from "@decaf-ts/db-decorators";
 import { OrderDirection, Paginator, Repository } from "@decaf-ts/core";
 import { TestCountryModel } from "./models";
-import { CouchDBAdapter, wrapDocumentScope } from "@decaf-ts/for-couchdb";
 import { NanoAdapter } from "@decaf-ts/for-nano";
+import { getHttpPouch } from "../pouch";
+import { PouchAdapter } from "../../src";
 
 const admin = "couchdb.admin";
 const admin_password = "couchdb.admin";
@@ -15,18 +16,18 @@ const dbHost = "localhost:10010";
 
 Model.setBuilder(Model.fromModel);
 
-jest.setTimeout(500000);
+jest.setTimeout(50000);
 
-describe(`Pagination`, function () {
+describe("Adapter Integration", () => {
   let con: ServerScope;
-  let adapter: CouchDBAdapter;
+  let adapter: PouchAdapter;
   let repo: Repository<TestCountryModel>;
 
   let created: TestCountryModel[];
   const size = 100;
 
   beforeAll(async () => {
-    con = NanoAdapter.connect(admin, admin_password, dbHost);
+    con = await NanoAdapter.connect(admin, admin_password, dbHost);
     expect(con).toBeDefined();
     try {
       await NanoAdapter.createDatabase(con, dbName);
@@ -35,10 +36,8 @@ describe(`Pagination`, function () {
       if (!(e instanceof ConflictError)) throw e;
     }
     con = NanoAdapter.connect(user, user_password, dbHost);
-    adapter = new NanoAdapter(
-      wrapDocumentScope(con, dbName, user, user_password),
-      "nano"
-    );
+    const db = await getHttpPouch(dbName, user, user_password);
+    adapter = new PouchAdapter(db);
     repo = new Repository(adapter, TestCountryModel);
     const models = Object.keys(new Array(size).fill(0)).map(
       (i) =>
