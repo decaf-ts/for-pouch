@@ -5,7 +5,7 @@ import { OrderDirection, Paginator, Repository } from "@decaf-ts/core";
 import { TestCountryModel } from "./models";
 import { NanoAdapter } from "@decaf-ts/for-nano";
 import { getHttpPouch } from "../pouch";
-import { PouchAdapter } from "../../src";
+import { PouchAdapter, PouchRepository } from "../../src";
 
 const admin = "couchdb.admin";
 const admin_password = "couchdb.admin";
@@ -21,7 +21,7 @@ jest.setTimeout(50000);
 describe("Adapter Integration", () => {
   let con: ServerScope;
   let adapter: PouchAdapter;
-  let repo: Repository<TestCountryModel>;
+  let repo: PouchRepository<TestCountryModel>;
 
   let created: TestCountryModel[];
   const size = 100;

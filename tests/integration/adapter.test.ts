@@ -4,7 +4,7 @@ import { Model } from "@decaf-ts/decorator-validation";
 import { TestModel } from "../TestModel";
 import { ConflictError, NotFoundError } from "@decaf-ts/db-decorators";
 import { NanoAdapter } from "@decaf-ts/for-nano";
-import { PouchAdapter } from "../../src";
+import { PouchAdapter, PouchRepository } from "../../src";
 import { getHttpPouch } from "../pouch";
 import { Sequence } from "@decaf-ts/for-couchdb";
 
@@ -22,7 +22,7 @@ jest.setTimeout(50000);
 describe("Adapter Integration", () => {
   let con: ServerScope;
   let adapter: PouchAdapter;
-  let repo: Repository<TestModel, any>;
+  let repo: PouchRepository<TestModel>;
 
   beforeAll(async () => {
     con = await NanoAdapter.connect(admin, admin_password, dbHost);
@@ -36,7 +36,7 @@ describe("Adapter Integration", () => {
     con = NanoAdapter.connect(user, user_password, dbHost);
     const db = await getHttpPouch(dbName, user, user_password);
     adapter = new PouchAdapter(db);
-    repo = new Repository<TestModel>(adapter, TestModel);
+    repo = new Repository(adapter, TestModel);
   });
 
   afterAll(async () => {

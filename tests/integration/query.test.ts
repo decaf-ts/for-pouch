@@ -24,8 +24,7 @@ import {
 } from "@decaf-ts/db-decorators";
 import { CouchDBRepository } from "@decaf-ts/for-couchdb";
 import { NanoAdapter } from "@decaf-ts/for-nano";
-import { PouchAdapter } from "../../src";
-import { TestModel } from "../TestModel";
+import { PouchAdapter, PouchRepository } from "../../src";
 import { getHttpPouch } from "../pouch";
 
 const admin = "couchdb.admin";
@@ -89,10 +88,9 @@ describe("Adapter Integration", () => {
   let created: TestUser[];
 
   it("Creates in bulk", async () => {
-    const repo: CouchDBRepository<TestUser> = Repository.forModel<
-      TestUser,
-      CouchDBRepository<TestUser>
-    >(TestUser);
+    const repo = Repository.forModel<TestUser, PouchRepository<TestUser>>(
+      TestUser
+    );
     const models = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(
       (i) =>
         new TestUser({
@@ -109,10 +107,9 @@ describe("Adapter Integration", () => {
   });
 
   it("Performs simple queries - full object", async () => {
-    const repo: CouchDBRepository<TestUser> = Repository.forModel<
-      TestUser,
-      CouchDBRepository<TestUser>
-    >(TestUser);
+    const repo = Repository.forModel<TestUser, PouchRepository<TestUser>>(
+      TestUser
+    );
     const selected = await repo.select().execute<TestUser[]>();
     expect(
       created.every((c) => c.equals(selected.find((s: any) => (s.id = c.id))))
@@ -120,10 +117,9 @@ describe("Adapter Integration", () => {
   });
 
   it("Performs simple queries - attributes only", async () => {
-    const repo: CouchDBRepository<TestUser> = Repository.forModel<
-      TestUser,
-      CouchDBRepository<TestUser>
-    >(TestUser);
+    const repo = Repository.forModel<TestUser, PouchRepository<TestUser>>(
+      TestUser
+    );
     const selected = await repo
       .select(["age", "sex"])
       .execute<{ age: number; sex: "M" | "F" }[]>();
@@ -141,20 +137,18 @@ describe("Adapter Integration", () => {
   });
 
   it("Performs conditional queries - full object", async () => {
-    const repo: CouchDBRepository<TestUser> = Repository.forModel<
-      TestUser,
-      CouchDBRepository<TestUser>
-    >(TestUser);
+    const repo = Repository.forModel<TestUser, PouchRepository<TestUser>>(
+      TestUser
+    );
     const condition = Condition.attribute("age").eq(20);
     const selected = await repo.select().where(condition).execute<TestUser[]>();
     expect(selected.length).toEqual(created.filter((c) => c.age === 20).length);
   });
 
   it("Performs conditional queries - selected attributes", async () => {
-    const repo: CouchDBRepository<TestUser> = Repository.forModel<
-      TestUser,
-      CouchDBRepository<TestUser>
-    >(TestUser);
+    const repo = Repository.forModel<TestUser, PouchRepository<TestUser>>(
+      TestUser
+    );
     const condition = Condition.attribute("age").eq(20);
     const selected = await repo
       .select(["age", "sex"])
@@ -175,10 +169,9 @@ describe("Adapter Integration", () => {
   });
 
   it("Performs AND conditional queries - full object", async () => {
-    const repo: CouchDBRepository<TestUser> = Repository.forModel<
-      TestUser,
-      CouchDBRepository<TestUser>
-    >(TestUser);
+    const repo = Repository.forModel<TestUser, PouchRepository<TestUser>>(
+      TestUser
+    );
     const condition = Condition.attribute("age")
       .eq(20)
       .and(Condition.attribute("sex").eq("M"));
@@ -189,10 +182,9 @@ describe("Adapter Integration", () => {
   });
 
   it("Performs OR conditional queries - full object", async () => {
-    const repo: CouchDBRepository<TestUser> = Repository.forModel<
-      TestUser,
-      CouchDBRepository<TestUser>
-    >(TestUser);
+    const repo = Repository.forModel<TestUser, PouchRepository<TestUser>>(
+      TestUser
+    );
     const condition = Condition.attribute("age")
       .eq(20)
       .or(Condition.attribute("age").eq(19));
@@ -203,10 +195,9 @@ describe("Adapter Integration", () => {
   });
 
   it("fails to Sorts attribute without indexes", async () => {
-    const repo: CouchDBRepository<TestUser> = Repository.forModel<
-      TestUser,
-      CouchDBRepository<TestUser>
-    >(TestUser);
+    const repo = Repository.forModel<TestUser, PouchRepository<TestUser>>(
+      TestUser
+    );
     await expect(() =>
       repo.select().orderBy(["name", OrderDirection.DSC]).execute<TestUser[]>()
     ).rejects.toThrow(InternalError);
@@ -214,10 +205,9 @@ describe("Adapter Integration", () => {
 
   it("Sorts attribute when indexed", async () => {
     await adapter.initialize();
-    const repo: CouchDBRepository<TestUser> = Repository.forModel<
-      TestUser,
-      CouchDBRepository<TestUser>
-    >(TestUser);
+    const repo = Repository.forModel<TestUser, PouchRepository<TestUser>>(
+      TestUser
+    );
     const sorted = await repo
       .select()
       .orderBy(["age", OrderDirection.DSC])

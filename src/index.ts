@@ -1,6 +1,5 @@
 export * from "./adapter";
 export * from "./PouchRepository";
-export * from "./utils";
 
 /**
  * @summary Module summary

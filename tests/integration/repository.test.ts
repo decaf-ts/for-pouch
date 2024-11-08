@@ -4,7 +4,7 @@ import { repository, Repository, uses } from "@decaf-ts/core";
 import { TestModel } from "../TestModel";
 import { ConflictError } from "@decaf-ts/db-decorators";
 import { NanoAdapter } from "@decaf-ts/for-nano";
-import { PouchAdapter } from "../../src";
+import { PouchAdapter, PouchRepository } from "../../src";
 import { getHttpPouch } from "../pouch";
 
 const admin = "couchdb.admin";
@@ -56,7 +56,7 @@ describe("Adapter Integration", () => {
   it("gets injected when using @repository", () => {
     class TestClass {
       @repository(TestModel)
-      repo!: Repository<TestModel>;
+      repo!: PouchRepository<TestModel>;
     }
 
     const testClass = new TestClass();

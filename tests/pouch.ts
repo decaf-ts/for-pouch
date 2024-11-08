@@ -1,4 +1,3 @@
-import { toDocumentScope } from "../src/utils";
 import * as PouchDB from "pouchdb-core";
 
 export async function normalizeImport<T>(
@@ -29,14 +28,12 @@ export async function getHttpPouch(dbName: string, user: string, pass: string) {
   await setupBasicPouch();
   const pouchHttp = await normalizeImport(import("pouchdb-adapter-http"));
   PouchDB.plugin(pouchHttp);
-  return toDocumentScope(
-    new PouchDB(`${protocol}://${user}:${pass}@${apiEndpoint}/${dbName}`)
-  );
+  return new PouchDB(`${protocol}://${user}:${pass}@${apiEndpoint}/${dbName}`);
 }
 
 export async function getLocalPouch(dbName: string) {
   await setupBasicPouch();
   const pouchLvlDb = await normalizeImport(import("pouchdb-adapter-idb"));
   PouchDB.plugin(pouchLvlDb);
-  return toDocumentScope(new PouchDB(`local_dbs/${dbName}`));
+  return new PouchDB(`local_dbs/${dbName}`);
 }

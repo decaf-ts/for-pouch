@@ -20,7 +20,7 @@ import { sequenceNameForModel } from "@decaf-ts/core";
 import { Sequence } from "@decaf-ts/core";
 import { Sequence as Seq } from "@decaf-ts/for-couchdb";
 import { NanoAdapter } from "@decaf-ts/for-nano";
-import { PouchAdapter } from "../../src";
+import { PouchAdapter, PouchRepository } from "../../src";
 import { getHttpPouch } from "../pouch";
 
 const admin = "couchdb.admin";
@@ -56,15 +56,15 @@ describe("Adapter Integration", () => {
     await NanoAdapter.deleteDatabase(con, dbName);
   });
 
-  let sequenceRepository: Repository<Seq>;
-  let userRepository: Repository<TestUserModel>;
-  let testDummyCountryModelRepository: Repository<TestDummyCountry>;
-  let testPhoneModelRepository: Repository<TestPhoneModel>;
-  let testDummyPhoneModelRepository: Repository<TestDummyPhone>;
-  let testAddressModelRepository: Repository<TestAddressModel>;
-  let testCountryModelRepository: Repository<TestCountryModel>;
-  let noPopulateOnceModelRepository: Repository<NoPopulateOnceModel>;
-  let noPopulateManyModelRepository: Repository<NoPopulateManyModel>;
+  let sequenceRepository: PouchRepository<Seq>;
+  let userRepository: PouchRepository<TestUserModel>;
+  let testDummyCountryModelRepository: PouchRepository<TestDummyCountry>;
+  let testPhoneModelRepository: PouchRepository<TestPhoneModel>;
+  let testDummyPhoneModelRepository: PouchRepository<TestDummyPhone>;
+  let testAddressModelRepository: PouchRepository<TestAddressModel>;
+  let testCountryModelRepository: PouchRepository<TestCountryModel>;
+  let noPopulateOnceModelRepository: PouchRepository<NoPopulateOnceModel>;
+  let noPopulateManyModelRepository: PouchRepository<NoPopulateManyModel>;
 
   let model: any;
 
