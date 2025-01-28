@@ -66,7 +66,7 @@ export class PouchAdapter extends CouchDBAdapter<Database> {
     try {
       response = await this.native.put(model);
     } catch (e: any) {
-      throw this.parseError(e);
+      throw PouchAdapter.parseError(e);
     }
 
     if (!response.ok)
@@ -85,7 +85,7 @@ export class PouchAdapter extends CouchDBAdapter<Database> {
     try {
       response = await this.native.bulkDocs(models);
     } catch (e: any) {
-      throw this.parseError(e);
+      throw PouchAdapter.parseError(e);
     }
     if (!response.every((r: Response | Err) => (r as Response).ok)) {
       const errors = response.reduce((accum: string[], el, i) => {
@@ -113,7 +113,7 @@ export class PouchAdapter extends CouchDBAdapter<Database> {
     try {
       record = await this.native.get(_id);
     } catch (e: any) {
-      throw this.parseError(e);
+      throw PouchAdapter.parseError(e);
     }
     return this.assignMetadata(record, record._rev);
   }
@@ -128,7 +128,7 @@ export class PouchAdapter extends CouchDBAdapter<Database> {
     const res = results.results.reduce((accum: any[], r) => {
       r.docs.forEach((d) => {
         if ((d as any).error || !(d as any).ok)
-          throw this.parseError(
+          throw PouchAdapter.parseError(
             ((d as { error: Err }).error as Error) ||
               new InternalError("Missing valid response")
           );
@@ -150,7 +150,7 @@ export class PouchAdapter extends CouchDBAdapter<Database> {
     try {
       response = await this.native.put(model);
     } catch (e: any) {
-      throw this.parseError(e);
+      throw PouchAdapter.parseError(e);
     }
 
     if (!response.ok)
@@ -169,7 +169,7 @@ export class PouchAdapter extends CouchDBAdapter<Database> {
     try {
       response = await this.native.bulkDocs(models);
     } catch (e: any) {
-      throw this.parseError(e);
+      throw PouchAdapter.parseError(e);
     }
     if (!response.every((r) => !(r as any).error)) {
       const errors = response.reduce((accum: string[], el, i) => {
@@ -198,7 +198,7 @@ export class PouchAdapter extends CouchDBAdapter<Database> {
       record = await this.native.get(_id);
       await this.native.remove(_id, record._rev);
     } catch (e: any) {
-      throw this.parseError(e);
+      throw PouchAdapter.parseError(e);
     }
     return this.assignMetadata(record, record._rev);
   }
@@ -239,7 +239,7 @@ export class PouchAdapter extends CouchDBAdapter<Database> {
       if (process) return response.docs as V;
       return response as V;
     } catch (e: any) {
-      throw this.parseError(e);
+      throw PouchAdapter.parseError(e);
     }
   }
 
