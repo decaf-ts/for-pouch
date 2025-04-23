@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="44" failures="0" errors="0" time="9.065">
+  <testsuite name="Adapter Integration" errors="0" failures="0" skipped="1" timestamp="2025-03-20T22:57:57" time="5.607" tests="3">
+    <testcase classname="Adapter Integration instantiates via constructor" name="Adapter Integration instantiates via constructor" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Adapter Integration instantiates via Repository.get with @uses decorator on model" name="Adapter Integration instantiates via Repository.get with @uses decorator on model" time="0.019">
+    </testcase>
+    <testcase classname="Adapter Integration gets injected when using @repository" name="Adapter Integration gets injected when using @repository" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="Adapter Integration" errors="0" failures="0" skipped="1" timestamp="2025-03-20T22:57:58" time="5.607" tests="4">
+    <testcase classname="Adapter Integration Fails to sort in an unindexed property" name="Adapter Integration Fails to sort in an unindexed property" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Adapter Integration indexes de database properly according to defined indexes" name="Adapter Integration indexes de database properly according to defined indexes" time="0.112">
+    </testcase>
+    <testcase classname="Adapter Integration Sorts via defined property when there is an index" name="Adapter Integration Sorts via defined property when there is an index" time="0.092">
+    </testcase>
+    <testcase classname="Adapter Integration paginates" name="Adapter Integration paginates" time="0.055">
+    </testcase>
+  </testsuite>
+  <testsuite name="Adapter Integration" errors="0" failures="0" skipped="1" timestamp="2025-03-20T22:57:57" time="5.715" tests="5">
+    <testcase classname="Adapter Integration creates one" name="Adapter Integration creates one" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Adapter Integration Creates in bulk" name="Adapter Integration Creates in bulk" time="0.089">
+    </testcase>
+    <testcase classname="Adapter Integration Reads in Bulk" name="Adapter Integration Reads in Bulk" time="0.016">
+    </testcase>
+    <testcase classname="Adapter Integration Updates in Bulk" name="Adapter Integration Updates in Bulk" time="0.034">
+    </testcase>
+    <testcase classname="Adapter Integration Deletes in Bulk" name="Adapter Integration Deletes in Bulk" time="0.062">
+    </testcase>
+  </testsuite>
+  <testsuite name="Adapter Integration" errors="0" failures="0" skipped="0" timestamp="2025-03-20T22:57:57" time="6.042" tests="5">
+    <testcase classname="Adapter Integration creates a sequence" name="Adapter Integration creates a sequence" time="0.043">
+    </testcase>
+    <testcase classname="Adapter Integration creates" name="Adapter Integration creates" time="0.148">
+    </testcase>
+    <testcase classname="Adapter Integration reads" name="Adapter Integration reads" time="0.009">
+    </testcase>
+    <testcase classname="Adapter Integration updates" name="Adapter Integration updates" time="0.05">
+    </testcase>
+    <testcase classname="Adapter Integration deletes" name="Adapter Integration deletes" time="0.055">
+    </testcase>
+  </testsuite>
+  <testsuite name="Adapter Integration" errors="0" failures="0" skipped="0" timestamp="2025-03-20T22:57:57" time="6.133" tests="9">
+    <testcase classname="Adapter Integration Creates in bulk" name="Adapter Integration Creates in bulk" time="0.146">
+    </testcase>
+    <testcase classname="Adapter Integration Performs simple queries - full object" name="Adapter Integration Performs simple queries - full object" time="0.107">
+    </testcase>
+    <testcase classname="Adapter Integration Performs simple queries - attributes only" name="Adapter Integration Performs simple queries - attributes only" time="0.02">
+    </testcase>
+    <testcase classname="Adapter Integration Performs conditional queries - full object" name="Adapter Integration Performs conditional queries - full object" time="0.011">
+    </testcase>
+    <testcase classname="Adapter Integration Performs conditional queries - selected attributes" name="Adapter Integration Performs conditional queries - selected attributes" time="0.012">
+    </testcase>
+    <testcase classname="Adapter Integration Performs AND conditional queries - full object" name="Adapter Integration Performs AND conditional queries - full object" time="0.009">
+    </testcase>
+    <testcase classname="Adapter Integration Performs OR conditional queries - full object" name="Adapter Integration Performs OR conditional queries - full object" time="0.01">
+    </testcase>
+    <testcase classname="Adapter Integration fails to Sorts attribute without indexes" name="Adapter Integration fails to Sorts attribute without indexes" time="0.022">
+    </testcase>
+    <testcase classname="Adapter Integration Sorts attribute when indexed" name="Adapter Integration Sorts attribute when indexed" time="0.236">
+    </testcase>
+  </testsuite>
+  <testsuite name="Adapter Integration" errors="0" failures="0" skipped="0" timestamp="2025-03-20T22:57:57" time="8.137" tests="18">
+    <testcase classname="Adapter Integration basic test creates a new record" name="Adapter Integration basic test creates a new record" time="0.098">
+    </testcase>
+    <testcase classname="Adapter Integration basic test updates the sequences" name="Adapter Integration basic test updates the sequences" time="0.005">
+    </testcase>
+    <testcase classname="Adapter Integration basic test reads a record" name="Adapter Integration basic test reads a record" time="0.007">
+    </testcase>
+    <testcase classname="Adapter Integration basic test updates a record" name="Adapter Integration basic test updates a record" time="0.032">
+    </testcase>
+    <testcase classname="Adapter Integration basic test finds a record" name="Adapter Integration basic test finds a record" time="0.107">
+    </testcase>
+    <testcase classname="Adapter Integration basic test deletes a record" name="Adapter Integration basic test deletes a record" time="0.034">
+    </testcase>
+    <testcase classname="Adapter Integration Complex relations Test One to one relations Ensure no population when populate is disabled in a one-to-one relation" name="Adapter Integration Complex relations Test One to one relations Ensure no population when populate is disabled in a one-to-one relation" time="0.231">
+    </testcase>
+    <testcase classname="Adapter Integration Complex relations Test One to one relations Creates a one to one relation" name="Adapter Integration Complex relations Test One to one relations Creates a one to one relation" time="0.111">
+    </testcase>
+    <testcase classname="Adapter Integration Complex relations Test One to one relations Updates a one to one relation" name="Adapter Integration Complex relations Test One to one relations Updates a one to one relation" time="0.053">
+    </testcase>
+    <testcase classname="Adapter Integration Complex relations Test One to one relations Deletes a one to one relation" name="Adapter Integration Complex relations Test One to one relations Deletes a one to one relation" time="0.041">
+    </testcase>
+    <testcase classname="Adapter Integration Complex relations Test One to one relations Creates another to check sequences" name="Adapter Integration Complex relations Test One to one relations Creates another to check sequences" time="0.1">
+    </testcase>
+    <testcase classname="Adapter Integration Complex relations Test One to many relations Ensure no population when populate is disabled in a one-to-many relation" name="Adapter Integration Complex relations Test One to many relations Ensure no population when populate is disabled in a one-to-many relation" time="0.344">
+    </testcase>
+    <testcase classname="Adapter Integration Complex relations Test One to many relations Creates a one to many relation" name="Adapter Integration Complex relations Test One to many relations Creates a one to many relation" time="0.306">
+    </testcase>
+    <testcase classname="Adapter Integration Complex relations Test One to many relations Updates a one to many relation" name="Adapter Integration Complex relations Test One to many relations Updates a one to many relation" time="0.169">
+    </testcase>
+    <testcase classname="Adapter Integration Complex relations Test One to many relations Deletes a one to many relation" name="Adapter Integration Complex relations Test One to many relations Deletes a one to many relation" time="0.163">
+    </testcase>
+    <testcase classname="Adapter Integration Complex relations Test Validate a key populate In a one-to-one relation" name="Adapter Integration Complex relations Test Validate a key populate In a one-to-one relation" time="0.114">
+    </testcase>
+    <testcase classname="Adapter Integration Complex relations Test Validate a key populate In a one-to-many relation" name="Adapter Integration Complex relations Test Validate a key populate In a one-to-many relation" time="0.281">
+    </testcase>
+    <testcase classname="Adapter Integration Complex relations Test Validate a key populate Populate should fail when all elements do not match the same type" name="Adapter Integration Complex relations Test Validate a key populate Populate should fail when all elements do not match the same type" time="0.177">
+    </testcase>
+  </testsuite>
+</testsuites>
