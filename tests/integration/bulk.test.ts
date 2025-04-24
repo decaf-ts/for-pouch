@@ -14,7 +14,6 @@ import {
 } from "@decaf-ts/decorator-validation";
 import { ServerScope } from "nano";
 import { ConflictError, NotFoundError } from "@decaf-ts/db-decorators";
-import { CouchDBRepository } from "@decaf-ts/for-couchdb";
 import { PouchAdapter, PouchRepository } from "../../src";
 import { NanoAdapter } from "@decaf-ts/for-nano";
 import { TestModel } from "../TestModel";
@@ -34,6 +33,7 @@ jest.setTimeout(50000);
 describe("Adapter Integration", () => {
   let con: ServerScope;
   let adapter: PouchAdapter;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let repo: PouchRepository<TestModel>;
 
   beforeAll(async () => {

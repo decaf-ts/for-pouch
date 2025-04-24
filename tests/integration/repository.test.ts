@@ -23,7 +23,7 @@ describe("Adapter Integration", () => {
   let adapter: PouchAdapter;
 
   beforeAll(async () => {
-    con = await NanoAdapter.connect(admin, admin_password, dbHost);
+    con = NanoAdapter.connect(admin, admin_password, dbHost);
     expect(con).toBeDefined();
     try {
       await NanoAdapter.createDatabase(con, dbName);

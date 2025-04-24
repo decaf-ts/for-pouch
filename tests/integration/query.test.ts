@@ -22,7 +22,6 @@ import {
   InternalError,
   readonly,
 } from "@decaf-ts/db-decorators";
-import { CouchDBRepository } from "@decaf-ts/for-couchdb";
 import { NanoAdapter } from "@decaf-ts/for-nano";
 import { PouchAdapter, PouchRepository } from "../../src";
 import { getHttpPouch } from "../pouch";

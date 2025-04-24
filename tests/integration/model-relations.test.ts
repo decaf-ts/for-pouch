@@ -60,6 +60,7 @@ describe("Adapter Integration", () => {
   let userRepository: PouchRepository<TestUserModel>;
   let testDummyCountryModelRepository: PouchRepository<TestDummyCountry>;
   let testPhoneModelRepository: PouchRepository<TestPhoneModel>;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let testDummyPhoneModelRepository: PouchRepository<TestDummyPhone>;
   let testAddressModelRepository: PouchRepository<TestAddressModel>;
   let testCountryModelRepository: PouchRepository<TestCountryModel>;
