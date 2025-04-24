@@ -44,7 +44,7 @@ The following npm scripts are available for development:
 
 - `do-install` - sets a `TOKEN` environment variable to the contents of `.token` and runs npm install (useful when you
   have private dependencies);
-- `update-scripts`: will pull the GitHub actions, templates, and style configs from the [for-pouch](https://github.com/decaf-ts/for-pouch) repository, overwriting the existing.
+- `update-scripts`: will pull the GitHub actions, templates, and style configs from the [for-nano](https://github.com/decaf-ts/for-nano) repository, overwriting the existing.
 - `on-first-run`: will run the initial setup script,
 - `set-git-auth` - change git config to include the token (no longer requires manual auth);
 - `postinstall` - will run only on the first installation to trigger the dep update. Will self-delete;
@@ -68,7 +68,7 @@ The following npm scripts are available for development:
   the `workdocs/resources` folder;
 - `uml` - compiles all PlantUML `*.puml` files in the `workdocs/uml` folder to png and moves them to
   the `workdocs/resources` folder;
-- `docs` - compiles all the coverage, drawings, uml, jsdocs, and md docs into a readable web page under `./docs`. Will be made available at [GitHub Pages](https://decaf-ts.github.io/for-pouch);
+- `docs` - compiles all the coverage, drawings, uml, jsdocs, and md docs into a readable web page under `./docs`. Will be made available at [GitHub Pages](https://decaf-ts.github.io/for-nano);
 - `publish-docs` - publishes the content of `./workdocs/confluence` to confluence according to the config at `./workdocs/confluence/.markdown-confluence.json`.
   Uses [markdown-confluence](https://markdown-confluence.com/introduction.html). Check their documentation for configuration details;
 
@@ -194,7 +194,7 @@ When the `-no-ci` flag is passed then you can:
 ### Repository Structure
 
 ```
-for-pouch
+for-nano
 │
 │   .confluence-token               <-- stores confluence access token
 │   .dockerignore                   <-- Defines files by docker in the build image

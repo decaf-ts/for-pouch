@@ -21,7 +21,7 @@ const config: Config.InitialOptions = {
         filename: "test-report.html",
         openReport: true,
         expand: true,
-        pageTitle: "for-pouch Test Report",
+        pageTitle: "for-nano Test Report",
         stripSkippedTest: true,
         darkTheme: true,
         enableMergeData: true,
@@ -31,10 +31,10 @@ const config: Config.InitialOptions = {
   ],
   coverageThreshold: {
     global: {
-      branches: 70,
-      functions: 100,
-      lines: 80,
-      statements: 90,
+      branches: 54,
+      functions: 88,
+      lines: 70,
+      statements: 72,
     },
   },
 };

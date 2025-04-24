@@ -18,8 +18,8 @@ to abide by its terms.
 ### Bootstrapping the project
 
 ```bash
-git clone https://github.com/decaf-ts/for-pouch.git
-cd for-pouch
+git clone https://github.com/decaf-ts/for-nano.git
+cd for-nano
 npm install
 npm run build
 ```
