@@ -21,7 +21,7 @@ const config: Config.InitialOptions = {
         filename: "test-report.html",
         openReport: true,
         expand: true,
-        pageTitle: "for-nano Test Report",
+        pageTitle: "for-pouch Test Report",
         stripSkippedTest: true,
         darkTheme: true,
         enableMergeData: true,
