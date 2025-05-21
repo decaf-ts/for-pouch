@@ -10,37 +10,88 @@ import {
 import {
   BaseError,
   ConflictError,
+  Context,
   InternalError,
   NotFoundError,
+  onCreate,
 } from "@decaf-ts/db-decorators";
-import { ConnectionError, User } from "@decaf-ts/core";
+import {
+  ConnectionError,
+  PersistenceKeys,
+  RelationsMetadata,
+  Repo,
+  Repository,
+  UnsupportedError,
+  User,
+} from "@decaf-ts/core";
 import Database = PouchDB.Database;
 import Response = PouchDB.Core.Response;
 import Err = PouchDB.Core.Error;
 import IdMeta = PouchDB.Core.IdMeta;
 import GetMeta = PouchDB.Core.GetMeta;
 import CreateIndexResponse = PouchDB.Find.CreateIndexResponse;
-import { Constructor, Model } from "@decaf-ts/decorator-validation";
+import {
+  Constructor,
+  Decoration,
+  Model,
+  propMetadata,
+} from "@decaf-ts/decorator-validation";
 import BulkGetResponse = PouchDB.Core.BulkGetResponse;
 import FindResponse = PouchDB.Find.FindResponse;
+import { PouchFlags } from "./types";
 
-export class PouchAdapter extends CouchDBAdapter<Database> {
-  constructor(scope: Database, flavour: string = "pouch") {
-    super(scope, flavour);
+export async function createdByOnPouchCreateUpdate<
+  M extends Model,
+  R extends Repo<M, C, F>,
+  V extends RelationsMetadata,
+  F extends PouchFlags,
+  C extends Context<PouchFlags>,
+>(
+  this: R,
+  context: Context<PouchFlags>,
+  data: V,
+  key: keyof M,
+  model: M
+): Promise<void> {
+  const url = (this.adapter.native as unknown as { name: string }).name;
+  if (url) {
+    const regexp = /https?:\/\/(.+?):.+?@/g;
+    const m = regexp.exec(url);
+    if (m) model[key] = m[1] as M[keyof M];
+    return;
   }
 
-  async user(): Promise<User> {
-    const url = (this.native as unknown as { name: string }).name;
-    if (url) {
-      const regexp = /https?:\/\/(.+?):.+?@/g;
-      const m = regexp.exec(url);
-      if (m) {
-        return new User({
-          id: m[1],
-        });
-      }
-    }
-    throw new InternalError("Not implemented");
+  const uuid: string = context.get("UUID");
+  if (!uuid)
+    throw new UnsupportedError(
+      "This adapter does not support user identification"
+    );
+  model[key] = uuid as M[keyof M];
+}
+
+export class PouchAdapter extends CouchDBAdapter<
+  Database,
+  PouchFlags,
+  Context<PouchFlags>
+> {
+  constructor(scope: Database, flavour: string = "pouch") {
+    super(scope, flavour);
+    const createdByKey = Repository.key(PersistenceKeys.CREATED_BY);
+    const updatedByKey = Repository.key(PersistenceKeys.UPDATED_BY);
+    Decoration.flavouredAs(flavour)
+      .for(createdByKey)
+      .define(
+        onCreate(createdByOnPouchCreateUpdate),
+        propMetadata(createdByKey, {})
+      )
+      .apply();
+    Decoration.flavouredAs(flavour)
+      .for(updatedByKey)
+      .define(
+        onCreate(createdByOnPouchCreateUpdate),
+        propMetadata(updatedByKey, {})
+      )
+      .apply();
   }
 
   protected async index<M extends Model>(
@@ -65,8 +116,8 @@ export class PouchAdapter extends CouchDBAdapter<Database> {
     let response: Response;
     try {
       response = await this.native.put(model);
-    } catch (e: any) {
-      throw PouchAdapter.parseError(e);
+    } catch (e: unknown) {
+      throw this.parseError(e as Error);
     }
 
     if (!response.ok)
