@@ -22,7 +22,6 @@ import {
   Repo,
   Repository,
   UnsupportedError,
-  User,
 } from "@decaf-ts/core";
 import Database = PouchDB.Database;
 import Response = PouchDB.Core.Response;
