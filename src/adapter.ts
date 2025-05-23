@@ -19,7 +19,6 @@ import {
   ConnectionError,
   PersistenceKeys,
   RelationsMetadata,
-  Repo,
   Repository,
   UnsupportedError,
 } from "@decaf-ts/core";
@@ -38,20 +37,16 @@ import {
 import BulkGetResponse = PouchDB.Core.BulkGetResponse;
 import FindResponse = PouchDB.Find.FindResponse;
 import { PouchFlags } from "./types";
+import { PouchFlavour } from "./constants";
+import { PouchRepository } from "./PouchRepository";
 
 export async function createdByOnPouchCreateUpdate<
   M extends Model,
-  R extends Repo<M, C, F>,
+  R extends PouchRepository<M>,
   V extends RelationsMetadata,
   F extends PouchFlags,
-  C extends Context<PouchFlags>,
->(
-  this: R,
-  context: Context<PouchFlags>,
-  data: V,
-  key: keyof M,
-  model: M
-): Promise<void> {
+  C extends Context<F>,
+>(this: R, context: C, data: V, key: keyof M, model: M): Promise<void> {
   const url = (this.adapter.native as unknown as { name: string }).name;
   if (url) {
     const regexp = /https?:\/\/(.+?):.+?@/g;
@@ -75,22 +70,6 @@ export class PouchAdapter extends CouchDBAdapter<
 > {
   constructor(scope: Database, flavour: string = "pouch") {
     super(scope, flavour);
-    const createdByKey = Repository.key(PersistenceKeys.CREATED_BY);
-    const updatedByKey = Repository.key(PersistenceKeys.UPDATED_BY);
-    Decoration.flavouredAs(flavour)
-      .for(createdByKey)
-      .define(
-        onCreate(createdByOnPouchCreateUpdate),
-        propMetadata(createdByKey, {})
-      )
-      .apply();
-    Decoration.flavouredAs(flavour)
-      .for(updatedByKey)
-      .define(
-        onCreate(createdByOnPouchCreateUpdate),
-        propMetadata(updatedByKey, {})
-      )
-      .apply();
   }
 
   protected async index<M extends Model>(
@@ -329,5 +308,24 @@ export class PouchAdapter extends CouchDBAdapter<
           return new ConnectionError(err);
         return new InternalError(err);
     }
+  }
+
+  static decoration() {
+    const createdByKey = Repository.key(PersistenceKeys.CREATED_BY);
+    const updatedByKey = Repository.key(PersistenceKeys.UPDATED_BY);
+    Decoration.flavouredAs(PouchFlavour)
+      .for(createdByKey)
+      .define(
+        onCreate(createdByOnPouchCreateUpdate),
+        propMetadata(createdByKey, {})
+      )
+      .apply();
+    Decoration.flavouredAs(PouchFlavour)
+      .for(updatedByKey)
+      .define(
+        onCreate(createdByOnPouchCreateUpdate),
+        propMetadata(updatedByKey, {})
+      )
+      .apply();
   }
 }

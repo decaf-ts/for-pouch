@@ -1,5 +1,12 @@
-export * from "./adapter";
+import { PouchAdapter } from "./adapter";
+
+PouchAdapter.decoration();
+
+export * from "./constants";
 export * from "./PouchRepository";
+export * from "./types";
+// left to the end on purpose
+export * from "./adapter";
 
 /**
  * @summary Module summary
