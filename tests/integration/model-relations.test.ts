@@ -144,11 +144,12 @@ describe("Adapter Integration", () => {
     });
 
     it("finds a record", async () => {
-      const condition = Condition.attribute("name").eq("other test name");
-      const results: TestCountryModel[] = await testCountryModelRepository
+      const condition =
+        Condition.attribute<TestCountryModel>("name").eq("other test name");
+      const results = await testCountryModelRepository
         .select()
         .where(condition)
-        .execute<TestCountryModel[]>();
+        .execute();
       expect(results).toBeDefined();
       expect(results.length).toEqual(1);
       expect(cached.equals(results[0])).toEqual(true);

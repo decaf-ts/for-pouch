@@ -14,6 +14,7 @@ import {
   InternalError,
   NotFoundError,
   onCreate,
+  OperationKeys,
 } from "@decaf-ts/db-decorators";
 import {
   ConnectionError,
@@ -44,23 +45,22 @@ export async function createdByOnPouchCreateUpdate<
   M extends Model,
   R extends PouchRepository<M>,
   V extends RelationsMetadata,
-  F extends PouchFlags,
-  C extends Context<F>,
->(this: R, context: C, data: V, key: keyof M, model: M): Promise<void> {
-  const url = (this.adapter.native as unknown as { name: string }).name;
-  if (url) {
-    const regexp = /https?:\/\/(.+?):.+?@/g;
-    const m = regexp.exec(url);
-    if (m) model[key] = m[1] as M[keyof M];
-    return;
-  }
-
-  const uuid: string = context.get("UUID");
-  if (!uuid)
+>(
+  this: R,
+  context: Context<PouchFlags>,
+  data: V,
+  key: keyof M,
+  model: M
+): Promise<void> {
+  try {
+    const uuid: string = context.get("UUID");
+    model[key] = uuid as M[keyof M];
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (e: unknown) {
     throw new UnsupportedError(
-      "This adapter does not support user identification"
+      "No User found in context. Please provide a user in the context"
     );
-  model[key] = uuid as M[keyof M];
+  }
 }
 
 export class PouchAdapter extends CouchDBAdapter<
@@ -68,8 +68,29 @@ export class PouchAdapter extends CouchDBAdapter<
   PouchFlags,
   Context<PouchFlags>
 > {
-  constructor(scope: Database, flavour: string = "pouch") {
-    super(scope, flavour);
+  constructor(scope: Database, alias?: string) {
+    super(scope, PouchFlavour, alias);
+  }
+
+  protected override flags<M extends Model>(
+    operation: OperationKeys,
+    model: Constructor<M>,
+    flags: Partial<PouchFlags>
+  ): PouchFlags {
+    let id: string = "";
+    const url = (this.native as unknown as { name: string }).name;
+    if (url) {
+      const regexp = /https?:\/\/(.+?):.+?@/g;
+      const m = regexp.exec(url);
+      if (m) id = m[1];
+    }
+    if (!id) {
+      id = crypto.randomUUID();
+    }
+
+    return Object.assign(super.flags(operation, model, flags), {
+      UUID: id,
+    }) as PouchFlags;
   }
 
   protected async index<M extends Model>(
@@ -272,11 +293,11 @@ export class PouchAdapter extends CouchDBAdapter<
     }
   }
 
-  parseError(err: Error | string, reason?: string): BaseError {
+  override parseError(err: Error | string, reason?: string): BaseError {
     return PouchAdapter.parseError(err, reason);
   }
 
-  static parseError(err: Error | string, reason?: string): BaseError {
+  static override parseError(err: Error | string, reason?: string): BaseError {
     // return super.parseError(err, reason);
     if (err instanceof BaseError) return err as any;
     let code: string = "";
