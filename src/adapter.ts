@@ -126,7 +126,7 @@ export class PouchAdapter extends CouchDBAdapter<
     return this.assignMetadata(model, response.rev);
   }
 
-  async createAll(
+  override async createAll(
     tableName: string,
     ids: string[] | number[],
     models: Record<string, any>[]
@@ -168,7 +168,7 @@ export class PouchAdapter extends CouchDBAdapter<
     return this.assignMetadata(record, record._rev);
   }
 
-  async readAll(
+  override async readAll(
     tableName: string,
     ids: (string | number | bigint)[]
   ): Promise<Record<string, any>[]> {
@@ -191,7 +191,7 @@ export class PouchAdapter extends CouchDBAdapter<
     return res;
   }
 
-  async update(
+  override async update(
     tableName: string,
     id: string | number,
     model: Record<string, any>
@@ -210,7 +210,7 @@ export class PouchAdapter extends CouchDBAdapter<
     return this.assignMetadata(model, response.rev);
   }
 
-  async updateAll(
+  override async updateAll(
     tableName: string,
     ids: string[] | number[],
     models: Record<string, any>[]
@@ -238,7 +238,7 @@ export class PouchAdapter extends CouchDBAdapter<
     );
   }
 
-  async delete(
+  override async delete(
     tableName: string,
     id: string | number
   ): Promise<Record<string, any>> {
@@ -253,7 +253,7 @@ export class PouchAdapter extends CouchDBAdapter<
     return this.assignMetadata(record, record._rev);
   }
 
-  async deleteAll(
+  override async deleteAll(
     tableName: string,
     ids: (string | number | bigint)[]
   ): Promise<Record<string, any>[]> {
