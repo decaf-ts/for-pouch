@@ -51,7 +51,7 @@ import { PouchRepository } from "./PouchRepository";
  * @param {R} this - The repository instance
  * @param {Context<PouchFlags>} context - The operation context containing flags
  * @param {V} data - The relations metadata
- * @param {keyof M} key - The property key to set on the model
+ * @param key - The property key to set on the model
  * @param {M} model - The model instance to modify
  * @return {Promise<void>} A promise that resolves when the operation is complete
  * @function createdByOnPouchCreateUpdate
@@ -94,13 +94,13 @@ export async function createdByOnPouchCreateUpdate<
  * ```typescript
  * import PouchDB from 'pouchdb';
  * import { PouchAdapter } from '@decaf-ts/for-pouch';
- * 
+ *
  * // Create a new PouchDB instance
  * const db = new PouchDB('my-database');
- * 
+ *
  * // Create a PouchAdapter with the database
  * const adapter = new PouchAdapter(db);
- * 
+ *
  * // Use the adapter for database operations
  * const result = await adapter.read('users', 'user-123');
  * ```
@@ -110,17 +110,17 @@ export async function createdByOnPouchCreateUpdate<
  *   participant PouchAdapter
  *   participant PouchDB
  *   participant CouchDB
- *   
+ *
  *   Client->>PouchAdapter: new PouchAdapter(db)
  *   PouchAdapter->>CouchDBAdapter: super(scope, PouchFlavour, alias)
- *   
+ *
  *   Client->>PouchAdapter: create(table, id, model)
  *   PouchAdapter->>PouchDB: put(model)
  *   PouchDB->>CouchDB: HTTP PUT
  *   CouchDB-->>PouchDB: Response
  *   PouchDB-->>PouchAdapter: Response
  *   PouchAdapter-->>Client: Updated model
- *   
+ *
  *   Client->>PouchAdapter: read(table, id)
  *   PouchAdapter->>PouchDB: get(id)
  *   PouchDB->>CouchDB: HTTP GET
@@ -173,7 +173,7 @@ export class PouchAdapter extends CouchDBAdapter<
    * @summary Generates and creates indexes in the PouchDB database based on the provided model constructors.
    * This method uses the generateIndexes utility to create index definitions and then creates them in the database.
    * @template M - The model type that extends Model
-   * @param {...Constructor<M>[]} models - The model constructors to create indexes for
+   * @param models - The model constructors to create indexes for
    * @return {Promise<void>} A promise that resolves when all indexes are created
    */
   protected async index<M extends Model>(
@@ -203,7 +203,7 @@ export class PouchAdapter extends CouchDBAdapter<
    *   participant Client
    *   participant PouchAdapter
    *   participant PouchDB
-   *   
+   *
    *   Client->>PouchAdapter: create(tableName, id, model)
    *   PouchAdapter->>PouchDB: put(model)
    *   alt Success
@@ -241,14 +241,14 @@ export class PouchAdapter extends CouchDBAdapter<
    * This method handles error parsing and ensures all operations were successful.
    * @param {string} tableName - The name of the table/collection
    * @param {string[]|number[]} ids - The document IDs
-   * @param {Record<string, any>[]} models - The document data to insert
-   * @return {Promise<Record<string, any>[]>} A promise that resolves to the created documents with metadata
+   * @param  models - The document data to insert
+   * @return A promise that resolves to the created documents with metadata
    * @mermaid
    * sequenceDiagram
    *   participant Client
    *   participant PouchAdapter
    *   participant PouchDB
-   *   
+   *
    *   Client->>PouchAdapter: createAll(tableName, ids, models)
    *   PouchAdapter->>PouchDB: bulkDocs(models)
    *   alt Success
@@ -301,7 +301,7 @@ export class PouchAdapter extends CouchDBAdapter<
    *   participant Client
    *   participant PouchAdapter
    *   participant PouchDB
-   *   
+   *
    *   Client->>PouchAdapter: read(tableName, id)
    *   PouchAdapter->>PouchAdapter: generateId(tableName, id)
    *   PouchAdapter->>PouchDB: get(_id)
@@ -334,14 +334,14 @@ export class PouchAdapter extends CouchDBAdapter<
    * @summary Fetches multiple documents from the PouchDB database using the bulkGet operation.
    * This method generates document IDs based on the table name and IDs, then retrieves the documents.
    * @param {string} tableName - The name of the table/collection
-   * @param {(string|number|bigint)[]} ids - The document IDs
-   * @return {Promise<Record<string, any>[]>} A promise that resolves to the retrieved documents with metadata
+   * @param {Array<string|number|bigint>} ids - The document IDs
+   * @return A promise that resolves to the retrieved documents with metadata
    * @mermaid
    * sequenceDiagram
    *   participant Client
    *   participant PouchAdapter
    *   participant PouchDB
-   *   
+   *
    *   Client->>PouchAdapter: readAll(tableName, ids)
    *   PouchAdapter->>PouchAdapter: Map ids to generateId(tableName, id)
    *   PouchAdapter->>PouchDB: bulkGet({docs})
@@ -391,7 +391,7 @@ export class PouchAdapter extends CouchDBAdapter<
    *   participant Client
    *   participant PouchAdapter
    *   participant PouchDB
-   *   
+   *
    *   Client->>PouchAdapter: update(tableName, id, model)
    *   PouchAdapter->>PouchDB: put(model)
    *   alt Success
@@ -429,14 +429,14 @@ export class PouchAdapter extends CouchDBAdapter<
    * This method handles error parsing and ensures all operations were successful.
    * @param {string} tableName - The name of the table/collection
    * @param {string[]|number[]} ids - The document IDs
-   * @param {Record<string, any>[]} models - The updated document data
-   * @return {Promise<Record<string, any>[]>} A promise that resolves to the updated documents with metadata
+   * @param models - The updated document data
+   * @return A promise that resolves to the updated documents with metadata
    * @mermaid
    * sequenceDiagram
    *   participant Client
    *   participant PouchAdapter
    *   participant PouchDB
-   *   
+   *
    *   Client->>PouchAdapter: updateAll(tableName, ids, models)
    *   PouchAdapter->>PouchDB: bulkDocs(models)
    *   alt Success
@@ -489,7 +489,7 @@ export class PouchAdapter extends CouchDBAdapter<
    *   participant Client
    *   participant PouchAdapter
    *   participant PouchDB
-   *   
+   *
    *   Client->>PouchAdapter: delete(tableName, id)
    *   PouchAdapter->>PouchAdapter: generateId(tableName, id)
    *   PouchAdapter->>PouchDB: get(_id)
@@ -525,14 +525,14 @@ export class PouchAdapter extends CouchDBAdapter<
    * @summary Removes multiple documents from the PouchDB database in a single operation.
    * This method first retrieves all documents to get their revisions, then marks them as deleted.
    * @param {string} tableName - The name of the table/collection
-   * @param {(string|number|bigint)[]} ids - The document IDs
-   * @return {Promise<Record<string, any>[]>} A promise that resolves to the deleted documents with metadata
+   * @param {Array<string|number|bigint>} ids - The document IDs
+   * @return A promise that resolves to the deleted documents with metadata
    * @mermaid
    * sequenceDiagram
    *   participant Client
    *   participant PouchAdapter
    *   participant PouchDB
-   *   
+   *
    *   Client->>PouchAdapter: deleteAll(tableName, ids)
    *   PouchAdapter->>PouchAdapter: Map ids to generateId(tableName, id)
    *   PouchAdapter->>PouchDB: bulkGet({docs})
@@ -589,7 +589,7 @@ export class PouchAdapter extends CouchDBAdapter<
    *   participant Client
    *   participant PouchAdapter
    *   participant PouchDB
-   *   
+   *
    *   Client->>PouchAdapter: raw<V>(rawInput, process)
    *   PouchAdapter->>PouchDB: find(rawInput)
    *   alt Success
@@ -641,7 +641,7 @@ export class PouchAdapter extends CouchDBAdapter<
    * sequenceDiagram
    *   participant Caller
    *   participant PouchAdapter
-   *   
+   *
    *   Caller->>PouchAdapter: parseError(err, reason)
    *   alt err is BaseError
    *     PouchAdapter-->>Caller: Return err as is
@@ -712,19 +712,19 @@ export class PouchAdapter extends CouchDBAdapter<
    *   participant Caller
    *   participant PouchAdapter
    *   participant Decoration
-   *   
+   *
    *   Caller->>PouchAdapter: decoration()
    *   PouchAdapter->>Repository: key(PersistenceKeys.CREATED_BY)
    *   Repository-->>PouchAdapter: createdByKey
    *   PouchAdapter->>Repository: key(PersistenceKeys.UPDATED_BY)
    *   Repository-->>PouchAdapter: updatedByKey
-   *   
+   *
    *   PouchAdapter->>Decoration: flavouredAs(PouchFlavour)
    *   Decoration-->>PouchAdapter: DecoratorBuilder
    *   PouchAdapter->>Decoration: for(createdByKey)
    *   PouchAdapter->>Decoration: define(onCreate, propMetadata)
    *   PouchAdapter->>Decoration: apply()
-   *   
+   *
    *   PouchAdapter->>Decoration: flavouredAs(PouchFlavour)
    *   Decoration-->>PouchAdapter: DecoratorBuilder
    *   PouchAdapter->>Decoration: for(updatedByKey)
