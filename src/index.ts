@@ -9,15 +9,15 @@ export * from "./types";
 export * from "./adapter";
 
 /**
- * @summary Module summary
- * @description Module description
- * @module for-nano
+ * @description A TypeScript adapter for PouchDB integration
+ * @summary This module provides a repository pattern implementation for PouchDB, allowing for easy database operations with TypeScript type safety. It exports constants, repository classes, types, and adapters for working with PouchDB.
+ * @module for-pouch
  */
 
 /**
- * @summary stores the current package version
- * @description this is how you should document a constant
+ * @description Package version identifier
+ * @summary Stores the current version of the for-pouch package
  * @const VERSION
- * @memberOf module:ts-workspace
+ * @memberOf module:for-pouch
  */
 export const VERSION = "##VERSION##";
