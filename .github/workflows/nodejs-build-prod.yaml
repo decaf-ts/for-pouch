@@ -33,16 +33,6 @@ jobs:
         run: |
           npm run docker:build
           docker compose -f docker/docker-compose.yml up -d
-      - name: Wait for all CouchDB nodes to be ready
-        run: |
-          for i in {1..10}; do
-            echo "Checking CouchDB nodes (attempt $i)..."
-            curl -sf http://localhost:10010/_up && \
-            curl -sf http://localhost:10011/_up && \
-            curl -sf http://localhost:10012/_up && break
-            echo "One or more CouchDB nodes not ready yet..."
-            sleep 3
-          done
       - name: Cache Build
         id: cache-build
         uses: actions/cache@v4
