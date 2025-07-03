@@ -36,7 +36,6 @@ jobs:
       # Install dependencies only if cache missed
       - run: npm ci
       - name: Start database for testing
-        working-directory: "node_modules/@decaf-ts/for-couchdb"
         run: |
           npm run docker:build
           docker compose -f docker/docker-compose.yml up -d

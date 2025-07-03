@@ -88,6 +88,8 @@ describe("Adapter Integration", () => {
 
   afterAll(async () => {
     await NanoAdapter.deleteDatabase(con1, dbName);
+    await NanoAdapter.deleteDatabase(con2, dbName);
+
   });
 
   @uses("pouch")
