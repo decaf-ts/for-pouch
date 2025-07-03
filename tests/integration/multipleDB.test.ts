@@ -30,7 +30,7 @@ const admin = "couchdb.admin";
 const admin_password = "couchdb.admin";
 const user = "couchdb.admin";
 const user_password = "couchdb.admin";
-const dbName = "queries_db";
+const dbName = "multiples_db";
 const dbHost1 = "localhost:10010";
 const dbHost2 = "localhost:10011";
 
