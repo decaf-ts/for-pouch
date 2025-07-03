@@ -10,9 +10,10 @@ export async function normalizeImport<T>(
 const protocol = "http";
 const apiEndpoint = "localhost:10010";
 
-async function setupBasicPouch() {
+export async function setupBasicPouch() {
+  let PouchDB ;
   try {
-    const PouchDB = await normalizeImport(import("pouchdb-core"));
+    PouchDB = await normalizeImport(import("pouchdb-core"));
     const pouchMapReduce = await normalizeImport(import("pouchdb-mapreduce"));
     const pouchReplication = await normalizeImport(
       import("pouchdb-replication")
@@ -21,7 +22,7 @@ async function setupBasicPouch() {
     PouchDB.plugin(pouchMapReduce).plugin(pouchReplication).plugin(pouchFind);
     return PouchDB;
   } catch (e: any) {
-    if (e instanceof Error && e.message.includes("redefine property")) return; //plugin has already been loaded so it's ok
+    if (e instanceof Error && e.message.includes("redefine property")) return PouchDB; //plugin has already been loaded so it's ok
     throw e;
   }
 }
