@@ -1,5 +1,0 @@
-./**/*
-!overrides
-!.env
-!init-cluster.sh
-!couchdb.ini
