@@ -145,13 +145,13 @@ export class PouchAdapter extends CouchDBAdapter<
    * @param {OperationKeys} operation - The operation key (create, read, update, delete)
    * @param {Constructor<M>} model - The model constructor
    * @param {Partial<PouchFlags>} flags - Partial flags to be merged
-   * @return {PouchFlags} The complete set of flags for the operation
+   * @return {Promise<PouchFlags>} The complete set of flags for the operation
    */
-  protected override flags<M extends Model>(
+  protected override async flags<M extends Model>(
     operation: OperationKeys,
     model: Constructor<M>,
     flags: Partial<PouchFlags>
-  ): PouchFlags {
+  ): Promise<PouchFlags> {
     let id: string = "";
     const url = (this.native as unknown as { name: string }).name;
     if (url) {
@@ -163,7 +163,7 @@ export class PouchAdapter extends CouchDBAdapter<
       id = crypto.randomUUID();
     }
 
-    return Object.assign(super.flags(operation, model, flags), {
+    return Object.assign(await super.flags(operation, model, flags), {
       UUID: id,
     }) as PouchFlags;
   }
