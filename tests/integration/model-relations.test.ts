@@ -70,7 +70,7 @@ describe("Adapter Integration", () => {
   let model: any;
 
   beforeAll(async () => {
-    sequenceRepository = Repository.forModel(Seq, adapter.flavour);
+    sequenceRepository = Repository.forModel(Seq, adapter.alias);
     expect(sequenceRepository).toBeDefined();
 
     userRepository = new Repository(adapter, TestUserModel);
