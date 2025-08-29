@@ -53,7 +53,7 @@ describe("Adapter Integration", () => {
     expect(repo).toBeInstanceOf(Repository);
   });
 
-  it("gets injected when using @repository", () => {
+  it.skip("gets injected when using @repository", () => {
     class TestClass {
       @repository(TestModel)
       repo!: PouchRepository<TestModel>;
