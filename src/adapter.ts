@@ -731,7 +731,8 @@ export class PouchAdapter extends CouchDBAdapter<
    *   PouchAdapter->>Decoration: define(onCreate, propMetadata)
    *   PouchAdapter->>Decoration: apply()
    */
-  static decoration() {
+  static override decoration() {
+    super.decoration();
     const createdByKey = Repository.key(PersistenceKeys.CREATED_BY);
     const updatedByKey = Repository.key(PersistenceKeys.UPDATED_BY);
     Decoration.flavouredAs(PouchFlavour)
@@ -750,3 +751,5 @@ export class PouchAdapter extends CouchDBAdapter<
       .apply();
   }
 }
+
+PouchAdapter.setCurrent(PouchFlavour);
