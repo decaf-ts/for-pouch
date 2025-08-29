@@ -14,6 +14,7 @@ import {
   InternalError,
   NotFoundError,
   onCreate,
+  onCreateUpdate,
   OperationKeys,
 } from "@decaf-ts/db-decorators";
 import {
@@ -745,7 +746,7 @@ export class PouchAdapter extends CouchDBAdapter<
     Decoration.flavouredAs(PouchFlavour)
       .for(updatedByKey)
       .define(
-        onCreate(createdByOnPouchCreateUpdate),
+        onCreateUpdate(createdByOnPouchCreateUpdate),
         propMetadata(updatedByKey, {})
       )
       .apply();
