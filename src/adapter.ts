@@ -86,25 +86,33 @@ export async function createdByOnPouchCreateUpdate<
 
 /**
  * @description PouchDB implementation of the CouchDBAdapter
- * @summary This class provides a concrete implementation of the CouchDBAdapter for PouchDB.
- * It handles all database operations like create, read, update, delete (CRUD) for both
- * single documents and bulk operations. It also provides methods for querying and indexing.
- * @template Database - The PouchDB database type
+ * @summary Concrete adapter that bridges the generic CouchDBAdapter to a PouchDB backend. It supports CRUD (single and bulk), indexing and Mango queries, and wires flavour-specific decorations.
  * @template PouchFlags - The flags specific to PouchDB operations
  * @template Context<PouchFlags> - The context type with PouchDB flags
- * @param {Database} scope - The PouchDB database instance
+ * @param {PouchConfig} config - Adapter configuration (remote credentials or local storage path, db name, plugins)
  * @param {string} [alias] - Optional alias for the database
  * @class PouchAdapter
  * @example
  * ```typescript
- * import PouchDB from 'pouchdb';
  * import { PouchAdapter } from '@decaf-ts/for-pouch';
  *
- * // Create a new PouchDB instance
- * const db = new PouchDB('my-database');
+ * // Create a PouchAdapter with config
+ * const adapter = new PouchAdapter({
+ *   protocol: 'http',
+ *   host: 'localhost:5984',
+ *   user: 'admin',
+ *   password: 'secret',
+ *   dbName: 'my-database',
+ *   plugins: []
+ * });
  *
- * // Create a PouchAdapter with the database
- * const adapter = new PouchAdapter(db);
+ * // Or use local storage
+ * const localAdapter = new PouchAdapter({
+ *   protocol: 'http', // ignored for local
+ *   dbName: 'local-db',
+ *   storagePath: 'local_dbs',
+ *   plugins: []
+ * });
  *
  * // Use the adapter for database operations
  * const result = await adapter.read('users', 'user-123');
@@ -116,8 +124,8 @@ export async function createdByOnPouchCreateUpdate<
  *   participant PouchDB
  *   participant CouchDB
  *
- *   Client->>PouchAdapter: new PouchAdapter(db)
- *   PouchAdapter->>CouchDBAdapter: super(scope, PouchFlavour, alias)
+ *   Client->>PouchAdapter: new PouchAdapter(config, alias?)
+ *   PouchAdapter->>CouchDBAdapter: super(config, PouchFlavour, alias)
  *
  *   Client->>PouchAdapter: create(table, id, model)
  *   PouchAdapter->>PouchDB: put(model)
@@ -143,6 +151,30 @@ export class PouchAdapter extends CouchDBAdapter<
     super(config, PouchFlavour, alias);
   }
 
+/**
+   * @description Lazily initializes and returns the underlying PouchDB client
+   * @summary Loads required PouchDB plugins once, builds the connection URL or local storage path from config, and caches the Database instance for reuse. Throws InternalError if client creation fails.
+   * @return {Database} A PouchDB Database instance ready to perform operations
+   * @mermaid
+   * sequenceDiagram
+   *   participant Caller
+   *   participant PouchAdapter
+   *   participant PouchDB
+   *   Caller->>PouchAdapter: getClient()
+   *   alt client not initialized
+   *     PouchAdapter->>PouchAdapter: register plugins
+   *     PouchAdapter->>PouchDB: new PouchDB(url or path)
+   *     alt creation fails
+   *       PouchDB-->>PouchAdapter: Error
+   *       PouchAdapter-->>Caller: throws InternalError
+   *     else success
+   *       PouchDB-->>PouchAdapter: Database
+   *       PouchAdapter-->>Caller: cached client
+   *     end
+   *   else client initialized
+   *     PouchAdapter-->>Caller: cached client
+   *   end
+   */
   override getClient(): Database {
     if (!this._client) {
       const plugins = [

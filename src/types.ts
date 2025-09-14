@@ -14,6 +14,21 @@ export interface PouchFlags extends RepositoryFlags {
   UUID: string;
 }
 
+/**
+ * @description Configuration options for initializing a PouchDB adapter
+ * @summary Defines connection credentials, local storage options, database name, and a list of PouchDB plugins to register before client creation.
+ * @template
+ * @property {string} [user] - Username for remote HTTP/S connections
+ * @property {string} [password] - Password for remote HTTP/S connections
+ * @property {string} [host] - Host (and optional port) of the remote CouchDB-compatible server
+ * @property {("http"|"https")} [protocol] - Network protocol to use when connecting remotely
+ * @property {number} [port] - Optional explicit port number; if provided may be part of host instead
+ * @property {string} dbName - Database name used in the URL or local path
+ * @property {string} [storagePath] - Relative base path for local databases; defaults to {@link DefaultLocalStoragePath}
+ * @property {any[]} plugins - List of PouchDB plugins (modules) to register with the client
+ * @typeDef PouchConfig
+ * @memberOf module:for-pouch
+ */
 export type PouchConfig = {
   user?: string;
   password?: string;
