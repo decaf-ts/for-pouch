@@ -10,7 +10,7 @@ export * from "./adapter";
 
 /**
  * @description A TypeScript adapter for PouchDB integration
- * @summary This module provides a repository pattern implementation for PouchDB, allowing for easy database operations with TypeScript type safety. It exports constants, repository classes, types, and adapters for working with PouchDB.
+ * @summary Provides a repository-pattern implementation backed by PouchDB, exposing the {@link PouchAdapter} to interface with databases, the {@link PouchRepository} for typed data access, configuration {@link module:for-pouch|constants} like {@link PouchFlavour} and {@link DefaultLocalStoragePath}, and related {@link module:for-pouch|types}. This module wires up decorators on load to support created/updated-by fields.
  * @module for-pouch
  */
 

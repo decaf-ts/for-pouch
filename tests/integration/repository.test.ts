@@ -32,8 +32,7 @@ describe("Adapter Integration", () => {
       if (!(e instanceof ConflictError)) throw e;
     }
     con = NanoAdapter.connect(user, user_password, dbHost);
-    const db = await getHttpPouch(dbName, user, user_password);
-    adapter = new PouchAdapter(db);
+    adapter = await getHttpPouch(dbName, user, user_password);
   });
 
   afterAll(async () => {
