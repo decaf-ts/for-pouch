@@ -6,3 +6,5 @@
  * @memberOf module:for-pouch
  */
 export const PouchFlavour = "pouch";
+
+export const DefaultLocalStoragePath = "local_dbs";

@@ -38,9 +38,13 @@ import {
 } from "@decaf-ts/decorator-validation";
 import BulkGetResponse = PouchDB.Core.BulkGetResponse;
 import FindResponse = PouchDB.Find.FindResponse;
-import { PouchFlags } from "./types";
-import { PouchFlavour } from "./constants";
+import { PouchConfig, PouchFlags } from "./types";
+import { DefaultLocalStoragePath, PouchFlavour } from "./constants";
 import { PouchRepository } from "./PouchRepository";
+import PouchDB from "pouchdb-core";
+import * as PouchMapReduce from "pouchdb-mapreduce";
+import * as PouchReplication from "pouchdb-replication";
+import * as PouchFind from "pouchdb-find";
 
 /**
  * @description Sets the creator ID on a model during creation or update operations
@@ -130,12 +134,50 @@ export async function createdByOnPouchCreateUpdate<
  *   PouchAdapter-->>Client: Model
  */
 export class PouchAdapter extends CouchDBAdapter<
+  PouchConfig,
   Database,
   PouchFlags,
   Context<PouchFlags>
 > {
-  constructor(scope: Database, alias?: string) {
-    super(scope, PouchFlavour, alias);
+  constructor(config: PouchConfig, alias?: string) {
+    super(config, PouchFlavour, alias);
+  }
+
+  override getClient(): Database {
+    if (!this._client) {
+      const plugins = [
+        PouchMapReduce,
+        PouchReplication,
+        PouchFind,
+        ...this.config.plugins,
+      ];
+      for (const plugin of plugins) {
+        try {
+          PouchDB.plugin(plugin);
+        } catch (e: any) {
+          if (e instanceof Error && e.message.includes("redefine property"))
+            continue; //plugin has already been loaded so it's ok
+          throw e;
+        }
+      }
+
+      const { host, protocol, user, password, dbName, storagePath } =
+        this.config;
+
+      try {
+        if (host && user) {
+          this._client = new PouchDB(
+            `${protocol}://${user}:${password}@${host}/${dbName}`
+          );
+        } else
+          this._client = new PouchDB(
+            `${storagePath || DefaultLocalStoragePath}/${dbName}`
+          );
+      } catch (e: unknown) {
+        throw new InternalError(`Failed to create PouchDB client: ${e}`);
+      }
+    }
+    return this._client as Database;
   }
 
   /**
@@ -153,19 +195,9 @@ export class PouchAdapter extends CouchDBAdapter<
     model: Constructor<M>,
     flags: Partial<PouchFlags>
   ): Promise<PouchFlags> {
-    let id: string = "";
-    const url = (this.native as unknown as { name: string }).name;
-    if (url) {
-      const regexp = /https?:\/\/(.+?):.+?@/g;
-      const m = regexp.exec(url);
-      if (m) id = m[1];
-    }
-    if (!id) {
-      id = crypto.randomUUID();
-    }
-
+    if (!this.config.user) this.config.user = crypto.randomUUID();
     return Object.assign(await super.flags(operation, model, flags), {
-      UUID: id,
+      UUID: this.config.user,
     }) as PouchFlags;
   }
 
@@ -182,7 +214,7 @@ export class PouchAdapter extends CouchDBAdapter<
   ): Promise<void> {
     const indexes: CreateIndexRequest[] = generateIndexes(models);
     for (const index of indexes) {
-      const res: CreateIndexResponse<any> = await this.native.createIndex(
+      const res: CreateIndexResponse<any> = await this.client.createIndex(
         index as any
       );
       const { result } = res;
@@ -224,7 +256,7 @@ export class PouchAdapter extends CouchDBAdapter<
   ): Promise<Record<string, any>> {
     let response: Response;
     try {
-      response = await this.native.put(model);
+      response = await this.client.put(model);
     } catch (e: unknown) {
       throw this.parseError(e as Error);
     }
@@ -269,7 +301,7 @@ export class PouchAdapter extends CouchDBAdapter<
   ): Promise<Record<string, any>[]> {
     let response: Response[] | Err[];
     try {
-      response = await this.native.bulkDocs(models);
+      response = await this.client.bulkDocs(models);
     } catch (e: any) {
       throw PouchAdapter.parseError(e);
     }
@@ -323,7 +355,7 @@ export class PouchAdapter extends CouchDBAdapter<
     const _id = this.generateId(tableName, id);
     let record: IdMeta & GetMeta;
     try {
-      record = await this.native.get(_id);
+      record = await this.client.get(_id);
     } catch (e: any) {
       throw PouchAdapter.parseError(e);
     }
@@ -360,7 +392,7 @@ export class PouchAdapter extends CouchDBAdapter<
     tableName: string,
     ids: (string | number | bigint)[]
   ): Promise<Record<string, any>[]> {
-    const results: BulkGetResponse<any> = await this.native.bulkGet({
+    const results: BulkGetResponse<any> = await this.client.bulkGet({
       docs: ids.map((id) => ({ id: this.generateId(tableName, id as any) })),
     });
     const res = results.results.reduce((accum: any[], r) => {
@@ -412,7 +444,7 @@ export class PouchAdapter extends CouchDBAdapter<
   ): Promise<Record<string, any>> {
     let response: Response;
     try {
-      response = await this.native.put(model);
+      response = await this.client.put(model);
     } catch (e: any) {
       throw PouchAdapter.parseError(e);
     }
@@ -457,7 +489,7 @@ export class PouchAdapter extends CouchDBAdapter<
   ): Promise<Record<string, any>[]> {
     let response: (Response | Err)[];
     try {
-      response = await this.native.bulkDocs(models);
+      response = await this.client.bulkDocs(models);
     } catch (e: any) {
       throw PouchAdapter.parseError(e);
     }
@@ -513,8 +545,8 @@ export class PouchAdapter extends CouchDBAdapter<
     const _id = this.generateId(tableName, id);
     let record: IdMeta & GetMeta;
     try {
-      record = await this.native.get(_id);
-      await this.native.remove(_id, record._rev);
+      record = await this.client.get(_id);
+      await this.client.remove(_id, record._rev);
     } catch (e: any) {
       throw PouchAdapter.parseError(e);
     }
@@ -554,11 +586,11 @@ export class PouchAdapter extends CouchDBAdapter<
     tableName: string,
     ids: (string | number | bigint)[]
   ): Promise<Record<string, any>[]> {
-    const results: BulkGetResponse<any> = await this.native.bulkGet({
+    const results: BulkGetResponse<any> = await this.client.bulkGet({
       docs: ids.map((id) => ({ id: this.generateId(tableName, id as any) })),
     });
 
-    const deletion: (Response | Err)[] = await this.native.bulkDocs(
+    const deletion: (Response | Err)[] = await this.client.bulkDocs(
       results.results.map((r) => {
         (r as any)[CouchDBKeys.DELETED] = true;
         return r;
@@ -608,7 +640,7 @@ export class PouchAdapter extends CouchDBAdapter<
    */
   async raw<V>(rawInput: MangoQuery, process = true): Promise<V> {
     try {
-      const response: FindResponse<any> = await this.native.find(
+      const response: FindResponse<any> = await this.client.find(
         rawInput as any
       );
       if (response.warning) console.warn(response.warning);

@@ -51,8 +51,7 @@ describe("Adapter Integration", () => {
       if (!(e instanceof ConflictError)) throw e;
     }
     con = NanoAdapter.connect(user, user_password, dbHost);
-    const db = await getHttpPouch(dbName, user, user_password);
-    adapter = new PouchAdapter(db);
+    adapter = await getHttpPouch(dbName, user, user_password);
   });
 
   afterAll(async () => {
@@ -109,7 +108,7 @@ describe("Adapter Integration", () => {
     const repo = Repository.forModel<TestUser, PouchRepository<TestUser>>(
       TestUser
     );
-    const selected = await repo.select().execute<TestUser[]>();
+    const selected = await repo.select().execute();
     expect(
       created.every((c) => c.equals(selected.find((s: any) => (s.id = c.id))))
     );
@@ -119,9 +118,7 @@ describe("Adapter Integration", () => {
     const repo = Repository.forModel<TestUser, PouchRepository<TestUser>>(
       TestUser
     );
-    const selected = await repo
-      .select(["age", "sex"])
-      .execute<{ age: number; sex: "M" | "F" }[]>();
+    const selected = await repo.select(["age", "sex"]).execute();
     expect(selected).toEqual(
       expect.arrayContaining(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -139,8 +136,8 @@ describe("Adapter Integration", () => {
     const repo = Repository.forModel<TestUser, PouchRepository<TestUser>>(
       TestUser
     );
-    const condition = Condition.attribute("age").eq(20);
-    const selected = await repo.select().where(condition).execute<TestUser[]>();
+    const condition = Condition.attribute<TestUser>("age").eq(20);
+    const selected = await repo.select().where(condition).execute();
     expect(selected.length).toEqual(created.filter((c) => c.age === 20).length);
   });
 
@@ -148,11 +145,11 @@ describe("Adapter Integration", () => {
     const repo = Repository.forModel<TestUser, PouchRepository<TestUser>>(
       TestUser
     );
-    const condition = Condition.attribute("age").eq(20);
+    const condition = Condition.attribute<TestUser>("age").eq(20);
     const selected = await repo
       .select(["age", "sex"])
       .where(condition)
-      .execute<TestUser[]>();
+      .execute();
     expect(selected.length).toEqual(created.filter((c) => c.age === 20).length);
     expect(selected).toEqual(
       expect.arrayContaining(
@@ -171,10 +168,10 @@ describe("Adapter Integration", () => {
     const repo = Repository.forModel<TestUser, PouchRepository<TestUser>>(
       TestUser
     );
-    const condition = Condition.attribute("age")
+    const condition = Condition.attribute<TestUser>("age")
       .eq(20)
-      .and(Condition.attribute("sex").eq("M"));
-    const selected = await repo.select().where(condition).execute<TestUser[]>();
+      .and(Condition.attribute<TestUser>("sex").eq("M"));
+    const selected = await repo.select().where(condition).execute();
     expect(selected.length).toEqual(
       created.filter((c) => c.age === 20 && c.sex === "M").length
     );
@@ -184,10 +181,10 @@ describe("Adapter Integration", () => {
     const repo = Repository.forModel<TestUser, PouchRepository<TestUser>>(
       TestUser
     );
-    const condition = Condition.attribute("age")
+    const condition = Condition.attribute<TestUser>("age")
       .eq(20)
-      .or(Condition.attribute("age").eq(19));
-    const selected = await repo.select().where(condition).execute<TestUser[]>();
+      .or(Condition.attribute<TestUser>("age").eq(19));
+    const selected = await repo.select().where(condition).execute();
     expect(selected.length).toEqual(
       created.filter((c) => c.age === 20 || c.age === 19).length
     );
@@ -198,7 +195,7 @@ describe("Adapter Integration", () => {
       TestUser
     );
     await expect(() =>
-      repo.select().orderBy(["name", OrderDirection.DSC]).execute<TestUser[]>()
+      repo.select().orderBy(["name", OrderDirection.DSC]).execute()
     ).rejects.toThrow(InternalError);
   });
 
@@ -210,7 +207,7 @@ describe("Adapter Integration", () => {
     const sorted = await repo
       .select()
       .orderBy(["age", OrderDirection.DSC])
-      .execute<TestUser[]>();
+      .execute();
     expect(sorted).toBeDefined();
     expect(sorted.length).toEqual(created.length);
 

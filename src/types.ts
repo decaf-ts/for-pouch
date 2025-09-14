@@ -13,3 +13,14 @@ export interface PouchFlags extends RepositoryFlags {
    */
   UUID: string;
 }
+
+export type PouchConfig = {
+  user?: string;
+  password?: string;
+  host?: string;
+  protocol?: "http" | "https";
+  port?: number;
+  dbName: string;
+  storagePath?: string;
+  plugins: any[];
+};

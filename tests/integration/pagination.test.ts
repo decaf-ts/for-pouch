@@ -36,8 +36,8 @@ describe("Adapter Integration", () => {
       if (!(e instanceof ConflictError)) throw e;
     }
     con = NanoAdapter.connect(user, user_password, dbHost);
-    const db = await getHttpPouch(dbName, user, user_password);
-    adapter = new PouchAdapter(db);
+    adapter = await getHttpPouch(dbName, user, user_password);
+
     repo = new Repository(adapter, TestCountryModel);
     const models = Object.keys(new Array(size).fill(0)).map(
       (i) =>
@@ -60,10 +60,7 @@ describe("Adapter Integration", () => {
   let selected: TestCountryModel[];
   it.skip("Fails to sort in an unindexed property", async () => {
     await expect(
-      repo
-        .select()
-        .orderBy(["id", OrderDirection.ASC])
-        .execute<TestCountryModel[]>()
+      repo.select().orderBy(["id", OrderDirection.ASC]).execute()
     ).rejects.toThrow(InternalError);
   });
 
@@ -75,7 +72,7 @@ describe("Adapter Integration", () => {
     selected = await repo
       .select()
       .orderBy(["id", OrderDirection.ASC])
-      .execute<TestCountryModel[]>();
+      .execute();
     expect(selected).toBeDefined();
     expect(selected.length).toEqual(created.length);
     expect(created.every((c, i) => c.equals(selected[i]))).toEqual(true);
@@ -85,7 +82,7 @@ describe("Adapter Integration", () => {
     const paginator: Paginator<TestCountryModel, any> = await repo
       .select()
       .orderBy(["id", OrderDirection.DSC])
-      .paginate<TestCountryModel>(10);
+      .paginate(10);
 
     expect(paginator).toBeDefined();
 

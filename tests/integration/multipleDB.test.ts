@@ -1,6 +1,6 @@
+import { NanoAdapter } from "@decaf-ts/for-nano";
 import {
   BaseModel,
-  Condition,
   index,
   OrderDirection,
   pk,
@@ -17,15 +17,8 @@ import {
   type,
 } from "@decaf-ts/decorator-validation";
 import { ServerScope } from "nano";
-import {
-  ConflictError,
-  InternalError,
-  readonly,
-} from "@decaf-ts/db-decorators";
-import { NanoAdapter } from "@decaf-ts/for-nano";
-import { PouchAdapter, PouchRepository } from "../../src";
-import { getHttpPouch, normalizeImport, setupBasicPouch } from "../pouch";
-
+import { ConflictError, readonly } from "@decaf-ts/db-decorators";
+import { getHttpPouch } from "../pouch";
 const admin = "couchdb.admin";
 const admin_password = "couchdb.admin";
 const user = "couchdb.admin";
@@ -41,16 +34,10 @@ jest.setTimeout(50000);
 describe("Adapter Integration", () => {
   let con1: ServerScope;
   let con2: ServerScope;
-  let adapter1: PouchAdapter;
-  let adapter2: PouchAdapter;
 
   let models: TestUser[];
 
   beforeAll(async () => {
-    const PouchDB = await setupBasicPouch();
-    const pouchHttp = await normalizeImport(import("pouchdb-adapter-http"));
-    PouchDB.plugin(pouchHttp);
-
     // DB 1
     con1 = await NanoAdapter.connect(admin, admin_password, dbHost1);
     expect(con1).toBeDefined();
@@ -60,10 +47,8 @@ describe("Adapter Integration", () => {
       if (!(e instanceof ConflictError)) throw e;
     }
 
-    const db1 = new PouchDB(
-      `http://${user}:${user_password}@${dbHost1}/${dbName}`
-    );
-    adapter1 = new PouchAdapter(db1, "db1");
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const adapter1 = await getHttpPouch(dbName, user, user_password, "db1");
 
     //DB 2
     con2 = await NanoAdapter.connect(admin, admin_password, dbHost2);
@@ -73,10 +58,8 @@ describe("Adapter Integration", () => {
     } catch (e: any) {
       if (!(e instanceof ConflictError)) throw e;
     }
-    const db2 = new PouchDB(
-      `http://${user}:${user_password}@${dbHost2}/${dbName}`
-    );
-    adapter2 = new PouchAdapter(db2, "db2");
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const adapter2 = await getHttpPouch(dbName, user, user_password, "db2");
 
     models = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(
       (i) =>
@@ -123,17 +106,11 @@ describe("Adapter Integration", () => {
   }
 
   it("Create and read Models on multiple DBs", async () => {
-    const repo1 = Repository.forModel<TestUser, PouchRepository<TestUser>>(
-      TestUser,
-      "db1"
-    );
+    const repo1 = Repository.forModel(TestUser, "db1");
     const user1 = await repo1.create(models[0]);
     expect(!user1.hasErrors()).toEqual(true);
 
-    const repo2 = Repository.forModel<TestUser, PouchRepository<TestUser>>(
-      TestUser,
-      "db2"
-    );
+    const repo2 = Repository.forModel(TestUser, "db2");
     const user2 = await repo2.create(models[1]);
 
     const user1read = await repo1.read(user1.id);
