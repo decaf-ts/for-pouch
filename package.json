@@ -127,8 +127,8 @@
     "@decaf-ts/for-couchdb": "latest",
     "@decaf-ts/injectable-decorators": "latest",
     "@decaf-ts/logging": "latest",
-    "@decaf-ts/transactional-decorators": "latest",
     "@decaf-ts/reflection": "latest",
+    "@decaf-ts/transactional-decorators": "latest",
     "pouchdb-core": "^9.0.0",
     "pouchdb-find": "^9.0.0"
   }

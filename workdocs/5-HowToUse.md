@@ -1,307 +1,309 @@
-### How to Use
+# How to Use decaf-ts / for-pouch
 
-## Installation
+Below are practical, valid TypeScript examples based on the repository’s tests. They cover the exported APIs of this package without duplication.
 
-First, install the package and its peer dependencies:
+## 1) Install and Initialize a PouchAdapter
 
-```bash
-npm install @decaf-ts/for-pouch pouchdb @decaf-ts/core @decaf-ts/decorator-validation
+You can work with a local/in-memory database (useful for tests) or a remote CouchDB-compatible server.
+
+```ts
+import { PouchAdapter, DefaultLocalStoragePath, VERSION } from "@decaf-ts/for-pouch";
+
+// Example: Local (in-memory) PouchDB using the memory adapter plugin
+async function makeMemoryAdapter() {
+  const memory = (await import("pouchdb-adapter-memory")).default as any;
+  // Alias allows multiple DBs; useful in multi-tenant scenarios
+  const adapter = new PouchAdapter({ dbName: "local_mem_db", plugins: [memory] }, "mem-local");
+  // Accessing the client verifies plugins and initializes the PouchDB instance
+  const client: any = (adapter as any).client;
+  return adapter;
+}
+
+// Example: Remote CouchDB-compatible server
+async function makeRemoteAdapter() {
+  const adapter = new PouchAdapter(
+    {
+      protocol: "http",
+      host: "localhost:5984",
+      user: "admin",
+      password: "secret",
+      dbName: "my_database",
+      plugins: [],
+    },
+    "remote-1"
+  );
+  return adapter;
+}
+
+console.log("for-pouch version:", VERSION);
 ```
 
-## Basic Usage Examples
+## 2) Model Definition with Decorators
 
-### Creating a Model
+Use decaf-ts decorators to define your schema, indexes, and target flavour. The @uses("pouch") decorator ties the model to this adapter flavour.
 
-Define a model class that will be stored in PouchDB:
+```ts
+import {
+  BaseModel,
+  Repository,
+  OrderDirection,
+  pk,
+  index,
+  uses,
+} from "@decaf-ts/core";
+import {
+  Model,
+  model,
+  required,
+  minlength,
+  min,
+  type,
+  ModelArg,
+} from "@decaf-ts/decorator-validation";
 
-```typescript
-import { Model } from "@decaf-ts/decorator-validation";
-import { DBKeys, id } from "@decaf-ts/db-decorators";
+@uses("pouch")
+@model()
+class User extends BaseModel {
+  @pk({ type: "Number" })
+  id!: number;
 
-class User extends Model {
-  @id()
-  id: string;
-  
-  firstName: string;
-  lastName: string;
-  email: string;
-  
-  constructor(data?: Partial<User>) {
-    super();
-    if (data) {
-      Object.assign(this, data);
+  @required()
+  @min(18)
+  @index([OrderDirection.DSC, OrderDirection.ASC])
+  age!: number;
+
+  @required()
+  @minlength(5)
+  name!: string;
+
+  @required()
+  @type([String.name])
+  sex!: "M" | "F";
+
+  constructor(arg?: ModelArg<User>) {
+    super(arg);
+  }
+}
+
+Model.setBuilder(Model.fromModel);
+```
+
+## 3) Basic CRUD with Repository and PouchAdapter
+
+```ts
+import { Repository } from "@decaf-ts/core";
+import { PouchAdapter } from "@decaf-ts/for-pouch";
+
+async function crudExample(adapter: PouchAdapter) {
+  const repo = new Repository(adapter, User);
+
+  // Create
+  const created = await repo.create(
+    new User({ name: "user_name_1", age: 20, sex: "M" })
+  );
+
+  // Read
+  const read = await repo.read(created.id);
+
+  // Update
+  const updated = await repo.update(new User({ ...created, name: "new_name" }));
+
+  // Delete
+  const deleted = await repo.delete(created.id);
+
+  return { created, read, updated, deleted };
+}
+```
+
+## 4) Bulk Operations (createAll, readAll, updateAll, deleteAll)
+
+```ts
+async function bulkExample(adapter: PouchAdapter) {
+  const repo = new Repository(adapter, User);
+
+  // Create many
+  const models = Array.from({ length: 5 }, (_, i) =>
+    new User({ name: `user_${i + 1}`.padEnd(6, "_"), age: 18 + i, sex: i % 2 ? "F" : "M" })
+  );
+  const created = await repo.createAll(models);
+
+  // Read many by id
+  const ids = created.map((u) => u.id);
+  const many = await repo.readAll(ids);
+
+  // Update many
+  const updated = await repo.updateAll(
+    many.map((u) => new User({ ...u, name: u.name + "_x" }))
+  );
+
+  // Delete many
+  const deleted = await repo.deleteAll(updated.map((u) => u.id));
+  return { created, many, updated, deleted };
+}
+```
+
+Notes:
+- Bulk methods aggregate item-level errors; if any operation fails, an error mapped via parseError is thrown.
+
+## 5) Querying with select(), where(), and orderBy()
+
+```ts
+import { Condition, OrderDirection } from "@decaf-ts/core";
+
+async function queryExample(adapter: PouchAdapter) {
+  const repo = new Repository(adapter, User);
+
+  // Insert sample data
+  await repo.createAll(
+    [1, 2, 3, 4, 5].map((i) => new User({ name: `user_name_${i}`, age: 18 + i % 3, sex: i % 2 ? "F" : "M" }))
+  );
+
+  // Fetch full objects
+  const all = await repo.select().execute();
+
+  // Fetch only selected attributes
+  const projected = await repo.select(["age", "sex"]).execute();
+
+  // Conditional filtering
+  const cond = Condition.attribute<User>("age").eq(20);
+  const exactly20 = await repo.select().where(cond).execute();
+
+  // Sorting requires proper indexes (use adapter.initialize() to build from @index decorators)
+  await adapter.initialize();
+  const sorted = await repo.select().orderBy(["age", OrderDirection.DSC]).execute();
+
+  return { all, projected, exactly20, sorted };
+}
+```
+
+## 6) Pagination
+
+```ts
+import { Paginator } from "@decaf-ts/core";
+
+async function paginationExample(adapter: PouchAdapter) {
+  const repo = new Repository(adapter, User);
+
+  await adapter.initialize();
+  const paginator: Paginator<User, any> = await repo
+    .select()
+    .orderBy(["id", OrderDirection.DSC])
+    .paginate(10);
+
+  const page1 = await paginator.page();
+  const page2 = await paginator.next();
+  return { page1, page2 };
+}
+```
+
+## 7) Multiple Databases via Alias
+
+```ts
+import { Repository } from "@decaf-ts/core";
+import { PouchAdapter } from "@decaf-ts/for-pouch";
+
+async function multiDbExample() {
+  const memory = (await import("pouchdb-adapter-memory")).default as any;
+
+  // Two adapters with distinct aliases
+  const db1 = new PouchAdapter({ dbName: "db1", plugins: [memory] }, "db1");
+  const db2 = new PouchAdapter({ dbName: "db2", plugins: [memory] }, "db2");
+
+  // Repository.forModel can resolve by alias (after @uses("pouch") on the model)
+  const repo1 = Repository.forModel(User, "db1");
+  const repo2 = Repository.forModel(User, "db2");
+
+  const u1 = await repo1.create(new User({ name: "A_user", age: 21, sex: "M" }));
+  const u2 = await repo2.create(new User({ name: "B_user", age: 22, sex: "F" }));
+
+  const again1 = await repo1.read(u1.id);
+  const again2 = await repo2.read(u2.id);
+  return { again1, again2 };
+}
+```
+
+## 8) Using raw() for Advanced Mango Queries
+
+```ts
+import { CouchDBKeys } from "@decaf-ts/for-couchdb";
+
+async function rawExample(adapter: PouchAdapter) {
+  const client: any = (adapter as any).client;
+  await client.put({ [CouchDBKeys.ID]: "r1", type: "row", x: 1 });
+  await client.put({ [CouchDBKeys.ID]: "r2", type: "row", x: 2 });
+
+  // process=true -> returns docs array only
+  const docsOnly = await adapter.raw<any[]>({ selector: { type: { $eq: "row" } } }, true);
+
+  // process=false -> returns the full FindResponse
+  const full = await adapter.raw<any>({ selector: { type: { $eq: "row" } } }, false);
+
+  return { docsOnly, full };
+}
+```
+
+## 9) Error Handling with parseError
+
+```ts
+import { BaseError } from "@decaf-ts/db-decorators";
+import { PouchAdapter } from "@decaf-ts/for-pouch";
+
+async function parseErrorExample(adapter: PouchAdapter) {
+  try {
+    await adapter.read("tbl", "no-such-id");
+  } catch (e) {
+    // Convert low-level errors to decaf-ts BaseError shape
+    const parsed = PouchAdapter.parseError(e);
+    if (parsed instanceof BaseError) {
+      // handle known error types (ConflictError, NotFoundError, etc.)
+      console.warn("Handled decaf error:", parsed.message);
+    } else {
+      throw e;
     }
   }
 }
 ```
 
-### Setting up the PouchAdapter
+## 10) createdBy/updatedBy Handling via Context Flags
 
-Initialize the PouchAdapter with your PouchDB instance:
+The module registers a handler that copies a context UUID into the createdBy/updatedBy fields for the pouch flavour. In advanced cases you can call the handler directly, as shown in tests.
 
-```typescript
-import PouchDB from 'pouchdb';
-import { PouchAdapter } from '@decaf-ts/for-pouch';
+```ts
+import { createdByOnPouchCreateUpdate, PouchFlags } from "@decaf-ts/for-pouch";
+import { Context } from "@decaf-ts/db-decorators";
 
-// Create a PouchDB instance
-const db = new PouchDB('my-database');
+class ExampleModel { createdBy?: string }
 
-// Create a PouchAdapter instance
-const adapter = new PouchAdapter('my-app', 'default');
-
-// Connect the adapter to the database
-adapter.connect(db);
-```
-
-### Creating a Repository
-
-Create a repository for your model:
-
-```typescript
-import { PouchRepository } from '@decaf-ts/for-pouch';
-import { Repository } from '@decaf-ts/core';
-
-// Create a repository for the User model
-const userRepository: PouchRepository<User> = Repository.create<User>(User, adapter);
-```
-
-### CRUD Operations
-
-#### Creating a Record
-
-```typescript
-// Use case: Adding a new user to the database
-const createUser = async () => {
-  const newUser = new User({
-    firstName: 'John',
-    lastName: 'Doe',
-    email: 'john.doe@example.com'
-  });
-  
-  // The id will be generated automatically
-  const createdUser = await userRepository.create(newUser);
-  console.log('Created user:', createdUser);
-};
-```
-
-#### Reading a Record
-
-```typescript
-// Use case: Retrieving a user by ID
-const getUser = async (userId: string) => {
-  try {
-    const user = await userRepository.read(userId);
-    console.log('Retrieved user:', user);
-    return user;
-  } catch (error) {
-    if (error instanceof NotFoundError) {
-      console.error('User not found');
-    } else {
-      console.error('Error retrieving user:', error);
-    }
-    throw error;
-  }
-};
-```
-
-#### Updating a Record
-
-```typescript
-// Use case: Updating user information
-const updateUser = async (userId: string, updates: Partial<User>) => {
-  try {
-    // First, get the current user
-    const user = await userRepository.read(userId);
-    
-    // Apply updates
-    Object.assign(user, updates);
-    
-    // Save the updated user
-    const updatedUser = await userRepository.update(user);
-    console.log('Updated user:', updatedUser);
-    return updatedUser;
-  } catch (error) {
-    console.error('Error updating user:', error);
-    throw error;
-  }
-};
-```
-
-#### Deleting a Record
-
-```typescript
-// Use case: Removing a user from the database
-const deleteUser = async (userId: string) => {
-  try {
-    await userRepository.delete(userId);
-    console.log('User deleted successfully');
-  } catch (error) {
-    console.error('Error deleting user:', error);
-    throw error;
-  }
-};
-```
-
-### Bulk Operations
-
-#### Creating Multiple Records
-
-```typescript
-// Use case: Adding multiple users at once
-const createUsers = async (users: User[]) => {
-  try {
-    const createdUsers = await userRepository.createAll(users);
-    console.log('Created users:', createdUsers);
-    return createdUsers;
-  } catch (error) {
-    console.error('Error creating users:', error);
-    throw error;
-  }
-};
-```
-
-#### Reading Multiple Records
-
-```typescript
-// Use case: Retrieving multiple users by their IDs
-const getUsers = async (userIds: string[]) => {
-  try {
-    const users = await userRepository.readAll(userIds);
-    console.log('Retrieved users:', users);
-    return users;
-  } catch (error) {
-    console.error('Error retrieving users:', error);
-    throw error;
-  }
-};
-```
-
-### Using PouchFlags
-
-```typescript
-// Use case: Providing a UUID for tracking operations
-const createUserWithUUID = async () => {
-  const newUser = new User({
-    firstName: 'Jane',
-    lastName: 'Smith',
-    email: 'jane.smith@example.com'
-  });
-  
-  // Create with flags
-  const flags: PouchFlags = {
-    UUID: 'user-123-operation-456'
-  };
-  
-  const createdUser = await userRepository.create(newUser, flags);
-  console.log('Created user with UUID:', createdUser);
-};
-```
-
-### Raw Queries
-
-```typescript
-// Use case: Executing a raw PouchDB query
-const executeRawQuery = async () => {
-  try {
-    const result = await adapter.raw({
-      selector: {
-        email: { $regex: '^john' }
-      },
-      limit: 10
-    });
-    
-    console.log('Query results:', result);
-    return result;
-  } catch (error) {
-    console.error('Error executing query:', error);
-    throw error;
-  }
-};
-```
-
-## Advanced Examples
-
-### Creating Indexes
-
-```typescript
-// Use case: Creating indexes for efficient querying
-const createIndexes = async () => {
-  try {
-    await adapter.index([User]);
-    console.log('Indexes created successfully');
-  } catch (error) {
-    if (error instanceof IndexError) {
-      console.error('Error creating index:', error.message);
-    } else {
-      console.error('Unexpected error:', error);
-    }
-    throw error;
-  }
-};
-```
-
-### Error Handling
-
-```typescript
-// Use case: Handling different types of errors
-const handleErrors = async (userId: string) => {
-  try {
-    const user = await userRepository.read(userId);
-    return user;
-  } catch (error) {
-    if (error instanceof NotFoundError) {
-      console.error('User not found:', error.message);
-      // Handle not found case
-    } else if (error instanceof ConflictError) {
-      console.error('Conflict detected:', error.message);
-      // Handle conflict case
-    } else if (error instanceof ConnectionError) {
-      console.error('Connection issue:', error.message);
-      // Handle connection issues
-    } else {
-      console.error('Unexpected error:', error);
-      // Handle other errors
-    }
-    throw error;
-  }
-};
-```
-
-### Using the PouchFlavour Constant
-
-```typescript
-// Use case: Creating custom decorators for PouchDB
-import { Decoration } from '@decaf-ts/decorator-validation';
-import { PouchFlavour } from '@decaf-ts/for-pouch';
-
-// Create a custom decorator that only applies to PouchDB implementations
-const customPouchDecorator = () => {
-  return (target: any, propertyKey: string) => {
-    Decoration.flavouredAs(PouchFlavour)
-      .for(propertyKey)
-      .define(/* your custom metadata */)
-      .apply();
-  };
-};
-
-// Usage in a model
-class CustomModel extends Model {
-  @customPouchDecorator()
-  specialField: string;
+async function createdByExample() {
+  const ctx = new Context<PouchFlags>().accumulate({ UUID: "user-123" });
+  const model = new ExampleModel();
+  await createdByOnPouchCreateUpdate.call(
+    {} as any,
+    ctx,
+    {} as any,
+    "createdBy" as any,
+    model as any
+  );
+  // model.createdBy === "user-123"
+  return model;
 }
 ```
 
-For more detailed information, refer to:
-- [Initial Setup](./workdocs/tutorials/For%20Developers.md#_initial-setup_)
-- [Installation](./workdocs/tutorials/For%20Developers.md#installation)
-- [Scripts](./workdocs/tutorials/For%20Developers.md#scripts)
-- [Linting](./workdocs/tutorials/For%20Developers.md#testing)
-- [CI/CD](./workdocs/tutorials/For%20Developers.md#continuous-integrationdeployment)
-- [Publishing](./workdocs/tutorials/For%20Developers.md#publishing)
-- [Structure](./workdocs/tutorials/For%20Developers.md#repository-structure)
-- [IDE Integrations](./workdocs/tutorials/For%20Developers.md#ide-integrations)
-  - [VSCode(ium)](./workdocs/tutorials/For%20Developers.md#visual-studio-code-vscode)
-  - [WebStorm](./workdocs/tutorials/For%20Developers.md#webstorm)
-- [Considerations](./workdocs/tutorials/For%20Developers.md#considerations)
+## 11) Types and Constants
 
+```ts
+import type { PouchConfig, PouchFlags } from "@decaf-ts/for-pouch";
+import { PouchFlavour, DefaultLocalStoragePath } from "@decaf-ts/for-pouch";
 
+const flavour: string = PouchFlavour; // "pouch"
+const defaultPath: string = DefaultLocalStoragePath; // "local_dbs"
+
+const cfg: PouchConfig = {
+  dbName: "sample",
+  plugins: [],
+};
+
+const flags: PouchFlags = {
+  UUID: "user-xyz",
+};
+```
