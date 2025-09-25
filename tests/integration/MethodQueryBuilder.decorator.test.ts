@@ -34,8 +34,6 @@ describe("Pouch MethodQueryBuilder Decorator", () => {
 
     userRepo = getRepo(adapter);
     await userRepo.init();
-
-    // adapter.client.add
   });
 
   afterAll(async () => {
