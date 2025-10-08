@@ -1,6 +1,5 @@
 import { PouchAdapter } from "../../src";
 import { CouchDBKeys } from "@decaf-ts/for-couchdb";
-import { BaseError } from "@decaf-ts/db-decorators";
 
 async function importMemoryPlugin() {
   const mod: any = await import("pouchdb-adapter-memory");
@@ -12,7 +11,10 @@ describe("PouchAdapter deleteAll error aggregation (memory)", () => {
 
   it("throws InternalError when bulk delete has errors", async () => {
     const memory = await importMemoryPlugin();
-    const adapter = new PouchAdapter({ dbName: "mem-del-errors", plugins: [memory] }, "mem-del-errors");
+    const adapter = new PouchAdapter(
+      { dbName: "mem-del-errors", plugins: [memory] },
+      "mem-del-errors"
+    );
     const client: any = (adapter as any).client;
 
     // seed only one doc

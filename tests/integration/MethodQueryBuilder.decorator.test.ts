@@ -10,7 +10,7 @@ const admin = "couchdb.admin";
 const admin_password = "couchdb.admin";
 const user = "couchdb.admin";
 const user_password = "couchdb.admin";
-const dbName = "adapter_raw_bulk_db";
+const dbName = "adapter_raw_bulk_db_2";
 const dbHost = "localhost:10010";
 
 let con: ServerScope;
@@ -28,6 +28,7 @@ describe("Pouch MethodQueryBuilder Decorator", () => {
       await NanoAdapter.createDatabase(con, dbName);
       // await NanoAdapter.createUser(con, dbName, user, user_password);
     } catch (e: any) {
+      console.error("Error creating database", e);
       throw e;
     }
     adapter = await getHttpPouch(dbName, user, user_password);
