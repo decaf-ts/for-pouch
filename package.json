@@ -76,7 +76,7 @@
     "ts"
   ],
   "author": "Tiago Venceslau and Contributors",
-  "license": "MIT",
+  "license": "MIT OR AGPL-3.0-only",
   "bugs": {
     "url": "https://github.com/decaf-ts/for-pouch/issues"
   },
