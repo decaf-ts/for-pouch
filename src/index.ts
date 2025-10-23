@@ -1,4 +1,5 @@
 import { PouchAdapter } from "./adapter";
+import { Metadata } from "@decaf-ts/decoration";
 
 PouchAdapter.decoration();
 
@@ -21,3 +22,12 @@ export * from "./adapter";
  * @memberOf module:for-pouch
  */
 export const VERSION = "##VERSION##";
+
+/**
+ * @description Package version identifier
+ * @summary Stores the current version of the for-pouch package
+ * @const VERSION
+ * @memberOf module:for-pouch
+ */
+export const PACKAGE_NAME = "##PACKAGE##";
+Metadata.registerLibrary(PACKAGE_NAME, VERSION);
