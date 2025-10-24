@@ -1,3 +1,5 @@
+![Banner](./workdocs/assets/decaf-logo.svg)
+
 # decaf-ts / for-pouch
 
 ## Purpose at a Glance
