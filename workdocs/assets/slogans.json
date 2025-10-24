@@ -1,0 +1,185 @@
+{
+  "for‑pouch": [
+    {
+      "Slogan": "Decaf‑TS for Pouch: Your local DB, minus the caffeine crash.",
+      "Tags": "PouchDB, Coffee‑themed, LocalStorage"
+    },
+    {
+      "Slogan": "Store it offline, sync it later, keep your heart rate steady.",
+      "Tags": "Offline, Sync, Calm"
+    },
+    {
+      "Slogan": "PouchDB adapter: the decaf version of local data hustle.",
+      "Tags": "Adapter, Coffee‑themed, LocalDB"
+    },
+    {
+      "Slogan": "Cache, query, relax—your Pouch just kicked back.",
+      "Tags": "Cache, Chill, Developer"
+    },
+    {
+      "Slogan": "When the network naps, your data doesn’t skip a beat.",
+      "Tags": "Network, OfflineFirst, Calm"
+    },
+    {
+      "Slogan": "Local storage with latte vibes.",
+      "Tags": "LocalDB, Coffee‑themed, Fun"
+    },
+    {
+      "Slogan": "No caffeine spikes, just smooth data flow between client and server.",
+      "Tags": "Sync, Calm, FullStack"
+    },
+    {
+      "Slogan": "Your browser’s little recliner for data—Pouch style.",
+      "Tags": "Browser, Metaphor, Chill"
+    },
+    {
+      "Slogan": "From offline mode to online glory without the jitters.",
+      "Tags": "OfflineFirst, Calm, Tech"
+    },
+    {
+      "Slogan": "Your PouchDB adapter: where your data lounges while you build features.",
+      "Tags": "PouchDB, Developer, Calm"
+    },
+    {
+      "Slogan": "Store less stress, more state.",
+      "Tags": "StateManagement, Chill, Humor"
+    },
+    {
+      "Slogan": "Syncs in the background while you sip your decaf.",
+      "Tags": "Sync, Coffee‑themed, Developer"
+    },
+    {
+      "Slogan": "Your app’s local DB shouldn’t cause local panic.",
+      "Tags": "LocalDB, Calm, Developer"
+    },
+    {
+      "Slogan": "Say goodbye to network‑anxiety; Pouch has your back.",
+      "Tags": "Network, Calm, PouchDB"
+    },
+    {
+      "Slogan": "Install adapter. Sit back. Let your data relax.",
+      "Tags": "Setup, Chill, Developer"
+    },
+    { "Slogan": "Cache first, worry never.", "Tags": "Cache, Calm, Tech" },
+    {
+      "Slogan": "When your data’s decaf‑chilled, your UX stays smooth.",
+      "Tags": "UX, Coffee‑themed, Technical"
+    },
+    {
+      "Slogan": "Local DB that won’t keep you up at night.",
+      "Tags": "LocalDB, Calm, Humor"
+    },
+    {
+      "Slogan": "Your Pouch: the sofa of your storage stack.",
+      "Tags": "Metaphor, Furniture, Developer"
+    },
+    {
+      "Slogan": "Offline‑ready, worry‑free, heart‑rate free.",
+      "Tags": "OfflineFirst, Calm, Developer"
+    },
+    {
+      "Slogan": "Data on the go, calm in the code.",
+      "Tags": "Mobile, Calm, Developer"
+    },
+    {
+      "Slogan": "Pouch adapter: full flavour of features, none of the crash.",
+      "Tags": "Adapter, Coffee‑themed, LocalDB"
+    },
+    {
+      "Slogan": "Store once, sync everywhere. Then take a coffee break.",
+      "Tags": "Sync, Coffee‑themed, Productivity"
+    },
+    {
+      "Slogan": "Local DB so smooth you’ll feel like writing features in a hammock.",
+      "Tags": "Metaphor, Chill, Developer"
+    },
+    {
+      "Slogan": "Cache it, query it, relax while it handles the rest.",
+      "Tags": "Cache, Chill, Tech"
+    },
+    {
+      "Slogan": "Never let network downtime ruin your morning brew.",
+      "Tags": "Network, Coffee‑themed, Humor"
+    },
+    {
+      "Slogan": "Pouch‑powered persistence: because your code deserves a coffee break too.",
+      "Tags": "Persistence, Coffee‑themed, Developer"
+    },
+    {
+      "Slogan": "Your local storage without the local meltdown.",
+      "Tags": "LocalDB, Calm, Tech"
+    },
+    {
+      "Slogan": "Sync‑queue whisperer: handled quietly while you code loudly.",
+      "Tags": "Sync, Humor, Developer"
+    },
+    {
+      "Slogan": "When your data sleeps locally, your code wakes up productive.",
+      "Tags": "LocalDB, Productivity, Calm"
+    },
+    {
+      "Slogan": "Browser crash? Not on my watch. Pouch is decaf‑steady.",
+      "Tags": "Browser, Stability, Coffee‑themed"
+    },
+    {
+      "Slogan": "Offline? Sure. Panic? Never.",
+      "Tags": "OfflineFirst, Calm, Developer"
+    },
+    {
+      "Slogan": "Let your users go offline without going off the rails.",
+      "Tags": "UX, OfflineFirst, Calm"
+    },
+    {
+      "Slogan": "Write your features while your storage takes a nap.",
+      "Tags": "Developer, Chill, Humor"
+    },
+    {
+      "Slogan": "Pouch adapter: the reclining chair of your persistence layer.",
+      "Tags": "Persistence, Metaphor, Chill"
+    },
+    {
+      "Slogan": "From local insert to remote replication—served slow, smooth, decaf.",
+      "Tags": "Replication, Coffee‑themed, Tech"
+    },
+    {
+      "Slogan": "Your data deserves a break—and so does your code.",
+      "Tags": "Developer, Coffee‑themed, Calm"
+    },
+    {
+      "Slogan": "Cache the chaos, replicate the calm.",
+      "Tags": "Cache, Sync, Calm"
+    },
+    {
+      "Slogan": "Local DB done right. Heart rate done low.",
+      "Tags": "LocalDB, Calm, Productivity"
+    },
+    {
+      "Slogan": "When your adapter handles hiccups, you handle creativity.",
+      "Tags": "Adapter, Developer, Chill"
+    },
+    {
+      "Slogan": "Installation takes seconds. Relaxation takes minutes.",
+      "Tags": "Setup, Humor, Developer"
+    },
+    {
+      "Slogan": "Your offline mode’s best friend.",
+      "Tags": "OfflineFirst, Chill, Tech"
+    },
+    {
+      "Slogan": "Data synchronization while you sip your latte (decaf, of course).",
+      "Tags": "Sync, Coffee‑themed, Fun"
+    },
+    {
+      "Slogan": "Full‑stack local‑first. Half the jitters.",
+      "Tags": "Fullstack, LocalDB, Coffee‑themed"
+    },
+    {
+      "Slogan": "Your PouchDB adapter: because local data doesn’t need to be high‑octane.",
+      "Tags": "PouchDB, Calm, Developer"
+    },
+    {
+      "Slogan": "Let your data lounge in Pouch while you ship features on repeat.",
+      "Tags": "Features, Chill, Developer"
+    }
+  ]
+}
