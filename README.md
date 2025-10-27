@@ -1,8 +1,9 @@
+![Banner](./workdocs/assets/decaf-logo.svg)
+
 # decaf-ts / for-pouch
 
 ## Purpose at a Glance
 A PouchDB-backed adapter and repository integration for the decaf-ts ecosystem. It provides a Repository implementation powered by PouchDB/CouchDB features (Mango queries, indexes, bulk ops, and relations), along with configuration types and constants to wire models to a PouchDB database (local or remote) using decorators.
-
 
 ![Licence](https://img.shields.io/github/license/decaf-ts/for-pouch.svg?style=plastic)
 ![GitHub language count](https://img.shields.io/github/languages/count/decaf-ts/for-pouch?style=plastic)
@@ -26,6 +27,9 @@ A PouchDB-backed adapter and repository integration for the decaf-ts ecosystem. 
 ![NPM Version](https://img.shields.io/badge/dynamic/json.svg?url=https%3A%2F%2Fraw.githubusercontent.com%2Fbadges%2Fshields%2Fmaster%2Fpackage.json&label=NPM&query=$.engines.npm&colorB=purple)
 
 Documentation available [here](https://decaf-ts.github.io/for-pouch/)
+
+Minimal size: 1.7 KB kb gzipped
+
 
 # decaf-ts / for-pouch — Detailed Description
 
@@ -423,6 +427,24 @@ const flags: PouchFlags = {
 ```
 
 
+## Coding Principles
+
+- group similar functionality in folders (analog to namespaces but without any namespace declaration)
+- one class per file;
+- one interface per file (unless interface is just used as a type);
+- group types as other interfaces in a types.ts file per folder;
+- group constants or enums in a constants.ts file per folder;
+- group decorators in a decorators.ts file per folder;
+- always import from the specific file, never from a folder or index file (exceptions for dependencies on other packages);
+- prefer the usage of established design patters where applicable:
+  - Singleton (can be an anti-pattern. use with care);
+  - factory;
+  - observer;
+  - strategy;
+  - builder;
+  - etc;
+
+
 ### Related
 
 [![decaf-ts](https://github-readme-stats.vercel.app/api/pin/?username=decaf-ts&repo=decaf-ts)](https://github.com/decaf-ts/decaf-ts)
@@ -465,6 +487,6 @@ So if you can, if this project in any way. either by learning something or simpl
 
 ## License
 
-This project is released under the [MIT License](./LICENSE.md).
+This project is released under the [Mozilla Public License 2.0](./LICENSE.md).
 
 By developers, for developers...

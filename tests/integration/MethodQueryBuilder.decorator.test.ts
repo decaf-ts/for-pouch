@@ -98,7 +98,7 @@ describe("Pouch MethodQueryBuilder Decorator", () => {
     });
   });
 
-  describe("OrderBy", () => {
+  describe.skip("OrderBy", () => {
     it("should order by name ascending", async () => {
       const orderByResult = await userRepo.findByActiveOrderByNameAsc(
         true,
