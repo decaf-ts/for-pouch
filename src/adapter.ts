@@ -30,12 +30,7 @@ import Err = PouchDB.Core.Error;
 import IdMeta = PouchDB.Core.IdMeta;
 import GetMeta = PouchDB.Core.GetMeta;
 import CreateIndexResponse = PouchDB.Find.CreateIndexResponse;
-import {
-  Constructor,
-  Decoration,
-  Model,
-  propMetadata,
-} from "@decaf-ts/decorator-validation";
+import { Model } from "@decaf-ts/decorator-validation";
 import BulkGetResponse = PouchDB.Core.BulkGetResponse;
 import FindResponse = PouchDB.Find.FindResponse;
 import { PouchConfig, PouchFlags } from "./types";
@@ -45,6 +40,7 @@ import PouchDB from "pouchdb-core";
 import * as PouchMapReduce from "pouchdb-mapreduce";
 import * as PouchReplication from "pouchdb-replication";
 import * as PouchFind from "pouchdb-find";
+import { Constructor, Decoration, propMetadata } from "@decaf-ts/decoration";
 
 /**
  * @description Sets the creator ID on a model during creation or update operations
@@ -151,7 +147,7 @@ export class PouchAdapter extends CouchDBAdapter<
     super(config, PouchFlavour, alias);
   }
 
-/**
+  /**
    * @description Lazily initializes and returns the underlying PouchDB client
    * @summary Loads required PouchDB plugins once, builds the connection URL or local storage path from config, and caches the Database instance for reuse. Throws InternalError if client creation fails.
    * @return {Database} A PouchDB Database instance ready to perform operations
