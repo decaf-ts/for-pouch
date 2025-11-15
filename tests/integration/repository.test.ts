@@ -1,7 +1,8 @@
 import { Model } from "@decaf-ts/decorator-validation";
 import { ServerScope } from "nano";
-import { repository, Repository, uses } from "@decaf-ts/core";
+import { repository, Repository } from "@decaf-ts/core";
 import { TestModel } from "../TestModel";
+import { uses } from "@decaf-ts/decoration";
 import { ConflictError } from "@decaf-ts/db-decorators";
 import { NanoAdapter } from "@decaf-ts/for-nano";
 import { PouchAdapter, PouchRepository } from "../../src";

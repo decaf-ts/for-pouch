@@ -5,8 +5,8 @@ import {
   OrderDirection,
   pk,
   Repository,
-  uses,
 } from "@decaf-ts/core";
+import { uses } from "@decaf-ts/decoration";
 import {
   min,
   minlength,
@@ -32,8 +32,6 @@ const user = "couchdb.admin";
 const user_password = "couchdb.admin";
 const dbName = "queries_db";
 const dbHost = "localhost:10010";
-
-Model.setBuilder(Model.fromModel);
 
 jest.setTimeout(50000);
 
@@ -75,7 +73,7 @@ describe("Adapter Integration", () => {
 
     @required()
     @readonly()
-    @type([String.name])
+    @type([String])
     sex!: "M" | "F";
 
     constructor(arg?: ModelArg<TestUser>) {
