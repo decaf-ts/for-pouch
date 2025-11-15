@@ -671,7 +671,7 @@ export class PouchAdapter extends CouchDBAdapter<
       const response: FindResponse<any> = await this.client.find(
         rawInput as any
       );
-      if (response.warning) console.warn(response.warning);
+      if (response.warning) this.log.for(this.raw).warn(response.warning);
       if (process) return response.docs as V;
       return response as V;
     } catch (e: any) {
