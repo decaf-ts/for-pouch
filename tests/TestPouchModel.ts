@@ -14,7 +14,7 @@ import { uses } from "@decaf-ts/decoration";
 @uses(PouchFlavour)
 @table("tst_user")
 @model()
-export class TestModel extends BaseModel {
+export class TestPouchModel extends BaseModel {
   @pk()
   id!: number;
 
@@ -37,7 +37,7 @@ export class TestModel extends BaseModel {
   @createdBy()
   updatedBy!: string;
 
-  constructor(arg?: ModelArg<TestModel>) {
+  constructor(arg?: ModelArg<TestPouchModel>) {
     super(arg);
   }
 }

@@ -1,10 +1,9 @@
 import { ServerScope } from "nano";
 import { PersistenceKeys, Repository } from "@decaf-ts/core";
-import { Model } from "@decaf-ts/decorator-validation";
-import { TestModel } from "../TestModel";
 import { ConflictError, NotFoundError } from "@decaf-ts/db-decorators";
 import { NanoAdapter } from "@decaf-ts/for-nano";
 import { PouchAdapter, PouchRepository } from "../../src";
+import { TestPouchModel } from "../TestPouchModel";
 import { getHttpPouch } from "../pouch";
 import { Sequence } from "@decaf-ts/for-couchdb";
 
@@ -15,14 +14,12 @@ const user_password = "couchdb.admin";
 const dbName = "adapter_db";
 const dbHost = "localhost:10010";
 
-Model.setBuilder(Model.fromModel);
-
 jest.setTimeout(50000);
 
 describe("Adapter Integration", () => {
   let con: ServerScope;
   let adapter: PouchAdapter;
-  let repo: PouchRepository<TestModel>;
+  let repo: PouchRepository<TestPouchModel>;
 
   beforeAll(async () => {
     con = await NanoAdapter.connect(admin, admin_password, dbHost);
@@ -35,14 +32,14 @@ describe("Adapter Integration", () => {
     }
     con = NanoAdapter.connect(user, user_password, dbHost);
     adapter = await getHttpPouch(dbName, user, user_password);
-    repo = new Repository(adapter, TestModel);
+    repo = new Repository(adapter, TestPouchModel);
   });
 
   afterAll(async () => {
     await NanoAdapter.deleteDatabase(con, dbName);
   });
 
-  let created: TestModel, updated: TestModel;
+  let created: TestPouchModel, updated: TestPouchModel;
 
   it("creates a sequence", async () => {
     const sequence = new Sequence({
@@ -57,7 +54,7 @@ describe("Adapter Integration", () => {
   });
 
   it("creates", async () => {
-    const model = new TestModel({
+    const model = new TestPouchModel({
       id: Date.now(),
       name: "test_name",
       nif: "123456789",
@@ -81,7 +78,7 @@ describe("Adapter Integration", () => {
   });
 
   it("updates", async () => {
-    const toUpdate = new TestModel(
+    const toUpdate = new TestPouchModel(
       Object.assign({}, created, {
         name: "new_test_name",
       })

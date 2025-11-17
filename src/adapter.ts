@@ -18,10 +18,10 @@ import {
   OperationKeys,
 } from "@decaf-ts/db-decorators";
 import {
+  Adapter,
   ConnectionError,
   PersistenceKeys,
   RelationsMetadata,
-  Repository,
   UnsupportedError,
 } from "@decaf-ts/core";
 import Database = PouchDB.Database;
@@ -811,4 +811,4 @@ export class PouchAdapter extends CouchDBAdapter<
   }
 }
 
-PouchAdapter.setCurrent(PouchFlavour);
+Adapter.setCurrent(PouchFlavour);

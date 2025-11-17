@@ -6,11 +6,10 @@ import {
   pk,
   Repository,
 } from "@decaf-ts/core";
-import { uses } from "@decaf-ts/decoration";
+import { Metadata, uses } from "@decaf-ts/decoration";
 import {
   min,
   minlength,
-  Model,
   model,
   ModelArg,
   required,
@@ -23,7 +22,7 @@ import {
   readonly,
 } from "@decaf-ts/db-decorators";
 import { NanoAdapter } from "@decaf-ts/for-nano";
-import { PouchAdapter, PouchRepository } from "../../src";
+import { PouchAdapter, PouchFlavour, PouchRepository } from "../../src";
 import { getHttpPouch } from "../pouch";
 
 const admin = "couchdb.admin";
@@ -56,7 +55,7 @@ describe("Adapter Integration", () => {
     await NanoAdapter.deleteDatabase(con, dbName);
   });
 
-  @uses("pouch")
+  @uses(PouchFlavour)
   @model()
   class TestUser extends BaseModel {
     @pk({ type: "Number" })
@@ -82,6 +81,10 @@ describe("Adapter Integration", () => {
   }
 
   let created: TestUser[];
+
+  it("is properly flavoured", () => {
+    expect(Metadata.flavourOf(TestUser)).toEqual(PouchFlavour);
+  });
 
   it("Creates in bulk", async () => {
     const repo = Repository.forModel<TestUser, PouchRepository<TestUser>>(
