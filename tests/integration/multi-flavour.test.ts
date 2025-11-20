@@ -1,9 +1,9 @@
 import { ServerScope } from "nano";
 import { PersistenceKeys, Repository } from "@decaf-ts/core";
+import { TestPouchModel } from "../TestPouchModel";
 import { ConflictError, NotFoundError } from "@decaf-ts/db-decorators";
 import { NanoAdapter } from "@decaf-ts/for-nano";
 import { PouchAdapter, PouchRepository } from "../../src";
-import { TestPouchModel } from "../TestPouchModel";
 import { getHttpPouch } from "../pouch";
 import { Sequence } from "@decaf-ts/for-couchdb";
 
@@ -11,7 +11,7 @@ const admin = "couchdb.admin";
 const admin_password = "couchdb.admin";
 const user = "couchdb.admin";
 const user_password = "couchdb.admin";
-const dbName = "adapter_db";
+const dbName = "adapter_db_test_model";
 const dbHost = "localhost:10010";
 
 jest.setTimeout(50000);

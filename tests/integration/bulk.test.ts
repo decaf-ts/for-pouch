@@ -1,10 +1,5 @@
-import {
-  BaseModel,
-  PersistenceKeys,
-  pk,
-  Repository,
-  uses,
-} from "@decaf-ts/core";
+import { BaseModel, PersistenceKeys, pk, Repository } from "@decaf-ts/core";
+import { uses } from "@decaf-ts/decoration";
 import {
   minlength,
   Model,
@@ -16,7 +11,7 @@ import { ServerScope } from "nano";
 import { ConflictError, NotFoundError } from "@decaf-ts/db-decorators";
 import { PouchAdapter, PouchRepository } from "../../src";
 import { NanoAdapter } from "@decaf-ts/for-nano";
-import { TestModel } from "../TestModel";
+import { TestPouchModel } from "../TestPouchModel";
 import { getHttpPouch } from "../pouch";
 
 const admin = "couchdb.admin";
@@ -34,7 +29,7 @@ describe("Adapter Integration", () => {
   let con: ServerScope;
   let adapter: PouchAdapter;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  let repo: PouchRepository<TestModel>;
+  let repo: PouchRepository<TestPouchModel>;
 
   beforeAll(async () => {
     con = await NanoAdapter.connect(admin, admin_password, dbHost);
@@ -47,7 +42,7 @@ describe("Adapter Integration", () => {
     }
     con = NanoAdapter.connect(user, user_password, dbHost);
     adapter = await getHttpPouch(dbName, user, user_password);
-    repo = new Repository(adapter, TestModel);
+    repo = new Repository(adapter, TestPouchModel);
   });
 
   afterAll(async () => {

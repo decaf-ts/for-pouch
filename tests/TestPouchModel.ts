@@ -5,13 +5,16 @@ import {
   ModelArg,
   required,
 } from "@decaf-ts/decorator-validation";
-import { BaseModel } from "@decaf-ts/core";
+import { BaseModel, createdBy } from "@decaf-ts/core";
 import { column, table, unique } from "@decaf-ts/core";
 import { pk } from "@decaf-ts/core";
+import { PouchFlavour } from "../src/index";
+import { uses } from "@decaf-ts/decoration";
 
+@uses(PouchFlavour)
 @table("tst_user")
 @model()
-export class TestModel extends BaseModel {
+export class TestPouchModel extends BaseModel {
   @pk()
   id!: number;
 
@@ -26,7 +29,15 @@ export class TestModel extends BaseModel {
   @required()
   nif!: string;
 
-  constructor(arg?: ModelArg<TestModel>) {
+  @column("tst_created_by")
+  @createdBy()
+  createdBy!: string;
+
+  @column("tst_updated_by")
+  @createdBy()
+  updatedBy!: string;
+
+  constructor(arg?: ModelArg<TestPouchModel>) {
     super(arg);
   }
 }

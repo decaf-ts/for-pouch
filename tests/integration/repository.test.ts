@@ -1,7 +1,8 @@
 import { Model } from "@decaf-ts/decorator-validation";
 import { ServerScope } from "nano";
-import { repository, Repository, uses } from "@decaf-ts/core";
-import { TestModel } from "../TestModel";
+import { repository, Repository } from "@decaf-ts/core";
+import { TestPouchModel } from "../TestPouchModel";
+import { uses } from "@decaf-ts/decoration";
 import { ConflictError } from "@decaf-ts/db-decorators";
 import { NanoAdapter } from "@decaf-ts/for-nano";
 import { PouchAdapter, PouchRepository } from "../../src";
@@ -40,22 +41,22 @@ describe("Adapter Integration", () => {
   });
 
   it.skip("instantiates via constructor", () => {
-    const repo = new Repository(adapter, TestModel);
+    const repo = new Repository(adapter, TestPouchModel);
     expect(repo).toBeDefined();
     expect(repo).toBeInstanceOf(Repository);
   });
 
   it("instantiates via Repository.get with @uses decorator on model", () => {
-    uses("pouch")(TestModel);
-    const repo = Repository.forModel(TestModel);
+    uses("pouch")(TestPouchModel);
+    const repo = Repository.forModel(TestPouchModel);
     expect(repo).toBeDefined();
     expect(repo).toBeInstanceOf(Repository);
   });
 
   it.skip("gets injected when using @repository", () => {
     class TestClass {
-      @repository(TestModel)
-      repo!: PouchRepository<TestModel>;
+      @repository(TestPouchModel)
+      repo!: PouchRepository<TestPouchModel>;
     }
 
     const testClass = new TestClass();
