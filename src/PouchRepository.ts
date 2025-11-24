@@ -1,6 +1,5 @@
 import { Model } from "@decaf-ts/decorator-validation";
-import { MangoQuery } from "@decaf-ts/for-couchdb";
-import { Repository } from "@decaf-ts/core";
+import { CouchDBRepository } from "@decaf-ts/for-couchdb";
 import { PouchAdapter } from "./adapter";
 
 /**
@@ -11,8 +10,7 @@ import { PouchAdapter } from "./adapter";
  * @typedef {Repository<M, MangoQuery, PouchAdapter>} PouchRepository
  * @memberOf module:for-pouch
  */
-export type PouchRepository<M extends Model> = Repository<
+export type PouchRepository<M extends Model> = CouchDBRepository<
   M,
-  MangoQuery,
   PouchAdapter
 >;

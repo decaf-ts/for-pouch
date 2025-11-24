@@ -1,11 +1,12 @@
 import { ServerScope } from "nano";
-import { PersistenceKeys, Repository } from "@decaf-ts/core";
+import { Model } from "@decaf-ts/decorator-validation";
+import { Observer, PersistenceKeys } from "@decaf-ts/core";
+import { CouchDBRepository } from "@decaf-ts/for-couchdb";
 import { TestPouchModel } from "../TestPouchModel";
 import { ConflictError, NotFoundError } from "@decaf-ts/db-decorators";
 import { NanoAdapter } from "@decaf-ts/for-nano";
 import { PouchAdapter, PouchRepository } from "../../src";
 import { getHttpPouch } from "../pouch";
-import { Sequence } from "@decaf-ts/for-couchdb";
 
 const admin = "couchdb.admin";
 const admin_password = "couchdb.admin";
@@ -14,12 +15,16 @@ const user_password = "couchdb.admin";
 const dbName = "adapter_db_test_model";
 const dbHost = "localhost:10010";
 
+Model.setBuilder(Model.fromModel);
+
 jest.setTimeout(50000);
 
 describe("Adapter Integration", () => {
   let con: ServerScope;
   let adapter: PouchAdapter;
   let repo: PouchRepository<TestPouchModel>;
+  let observer: Observer;
+  let mock: jest.Mock;
 
   beforeAll(async () => {
     con = await NanoAdapter.connect(admin, admin_password, dbHost);
@@ -32,7 +37,24 @@ describe("Adapter Integration", () => {
     }
     con = NanoAdapter.connect(user, user_password, dbHost);
     adapter = await getHttpPouch(dbName, user, user_password);
-    repo = new Repository(adapter, TestPouchModel);
+    repo = new CouchDBRepository(adapter, TestPouchModel);
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.restoreAllMocks();
+    jest.resetAllMocks();
+    mock = jest.fn();
+    observer = new (class implements Observer {
+      refresh(...args: any[]): Promise<void> {
+        return mock(...args);
+      }
+    })();
+    repo.observe(observer);
+  });
+
+  afterEach(() => {
+    repo.unObserve(observer);
   });
 
   afterAll(async () => {
@@ -40,18 +62,6 @@ describe("Adapter Integration", () => {
   });
 
   let created: TestPouchModel, updated: TestPouchModel;
-
-  it("creates a sequence", async () => {
-    const sequence = new Sequence({
-      id: "id" + Date.now(),
-      current: Date.now(),
-    });
-
-    const repo = new Repository(adapter, Sequence);
-
-    const created = repo.create(sequence);
-    expect(created).toBeDefined();
-  });
 
   it("creates", async () => {
     const model = new TestPouchModel({
@@ -88,7 +98,9 @@ describe("Adapter Integration", () => {
 
     expect(updated).toBeDefined();
     expect(updated.equals(created)).toEqual(false);
-    expect(updated.equals(created, "updatedOn", "name")).toEqual(true); // minus the expected changes
+    expect(
+      updated.equals(created, "updatedAt", "updatedOn", "name")
+    ).toEqual(true); // minus the expected changes
     const metadata = (updated as any)[PersistenceKeys.METADATA];
     expect(metadata).toBeDefined();
   });

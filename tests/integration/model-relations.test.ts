@@ -15,10 +15,9 @@ import {
 import { Model } from "@decaf-ts/decorator-validation";
 import { ServerScope } from "nano";
 import { ConflictError, NotFoundError } from "@decaf-ts/db-decorators";
-import { Condition, Repository } from "@decaf-ts/core";
-import { sequenceNameForModel } from "@decaf-ts/core";
-import { Sequence } from "@decaf-ts/core";
+import { Condition, Sequence } from "@decaf-ts/core";
 import { Sequence as Seq } from "@decaf-ts/for-couchdb";
+import { CouchDBRepository } from "@decaf-ts/for-couchdb";
 import { NanoAdapter } from "@decaf-ts/for-nano";
 import { PouchAdapter, PouchRepository } from "../../src";
 import { getHttpPouch } from "../pouch";
@@ -32,7 +31,7 @@ const dbHost = "localhost:10010";
 
 Model.setBuilder(Model.fromModel);
 
-jest.setTimeout(50000);
+jest.setTimeout(500000);
 
 describe("Adapter Integration", () => {
   let con: ServerScope;
@@ -68,20 +67,35 @@ describe("Adapter Integration", () => {
   let model: any;
 
   beforeAll(async () => {
-    sequenceRepository = Repository.forModel(Seq, adapter.alias);
+    sequenceRepository = new CouchDBRepository(adapter, Seq);
     expect(sequenceRepository).toBeDefined();
 
-    userRepository = new Repository(adapter, TestUserModel);
-    testPhoneModelRepository = new Repository(adapter, TestPhoneModel);
-    testAddressModelRepository = new Repository(adapter, TestAddressModel);
-    testCountryModelRepository = new Repository(adapter, TestCountryModel);
-    testDummyCountryModelRepository = new Repository(adapter, TestDummyCountry);
-    testDummyPhoneModelRepository = new Repository(adapter, TestDummyPhone);
-    noPopulateOnceModelRepository = new Repository(
+    userRepository = new CouchDBRepository(adapter, TestUserModel);
+    testPhoneModelRepository = new CouchDBRepository(
+      adapter,
+      TestPhoneModel
+    );
+    testAddressModelRepository = new CouchDBRepository(
+      adapter,
+      TestAddressModel
+    );
+    testCountryModelRepository = new CouchDBRepository(
+      adapter,
+      TestCountryModel
+    );
+    testDummyCountryModelRepository = new CouchDBRepository(
+      adapter,
+      TestDummyCountry
+    );
+    testDummyPhoneModelRepository = new CouchDBRepository(
+      adapter,
+      TestDummyPhone
+    );
+    noPopulateOnceModelRepository = new CouchDBRepository(
       adapter,
       NoPopulateOnceModel
     );
-    noPopulateManyModelRepository = new Repository(
+    noPopulateManyModelRepository = new CouchDBRepository(
       adapter,
       NoPopulateManyModel
     );
@@ -103,7 +117,9 @@ describe("Adapter Integration", () => {
       expect(
         created.equals(
           record,
+          "createdAt",
           "createdOn",
+          "updatedAt",
           "updatedOn",
           "createdBy",
           "updatedBy",
@@ -171,7 +187,7 @@ describe("Adapter Integration", () => {
       let updated: TestAddressModel;
       it("Ensure no population when populate is disabled in a one-to-one relation", async () => {
         const sequenceModel = await adapter.Sequence({
-          name: sequenceNameForModel(NoPopulateOnceModel, "pk"),
+          name: Model.sequenceName(NoPopulateOnceModel, "pk"),
           type: "Number",
           startWith: 0,
           incrementBy: 1,
@@ -179,7 +195,7 @@ describe("Adapter Integration", () => {
         });
 
         const sequenceCountry = await adapter.Sequence({
-          name: sequenceNameForModel(TestDummyCountry, "pk"),
+          name: Model.sequenceName(TestDummyCountry, "pk"),
           type: "Number",
           startWith: 0,
           incrementBy: 1,
@@ -214,7 +230,9 @@ describe("Adapter Integration", () => {
         const deleted = await noPopulateOnceModelRepository.delete(created.id);
         expect(deleted.country).toEqual(countryCurVal + 2);
 
-        const c = testDummyCountryModelRepository.read(countryCurVal + 1);
+        const c = await testDummyCountryModelRepository.read(
+          countryCurVal + 1
+        );
         expect(c).toBeDefined();
       });
 

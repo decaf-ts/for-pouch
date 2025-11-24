@@ -16,10 +16,13 @@ import {
   onCreate,
   onCreateUpdate,
   OperationKeys,
+  PrimaryKeyType,
 } from "@decaf-ts/db-decorators";
 import {
   Adapter,
   ConnectionError,
+  ContextualArgs,
+  FlagsOf,
   PersistenceKeys,
   RelationsMetadata,
   UnsupportedError,
@@ -137,12 +140,9 @@ export async function createdByOnPouchCreateUpdate<
  *   PouchDB-->>PouchAdapter: Document
  *   PouchAdapter-->>Client: Model
  */
-export class PouchAdapter extends CouchDBAdapter<
-  PouchConfig,
-  Database,
-  PouchFlags,
-  Context<PouchFlags>
-> {
+export class PouchAdapter<
+  C extends Context<PouchFlags> = Context<PouchFlags>,
+> extends CouchDBAdapter<PouchConfig, Database, C> {
   constructor(config: PouchConfig, alias?: string) {
     super(config, PouchFlavour, alias);
   }
@@ -221,12 +221,12 @@ export class PouchAdapter extends CouchDBAdapter<
   protected override async flags<M extends Model>(
     operation: OperationKeys,
     model: Constructor<M>,
-    flags: Partial<PouchFlags>
-  ): Promise<PouchFlags> {
+    flags: Partial<FlagsOf<C>>
+  ): Promise<FlagsOf<C>> {
     if (!this.config.user) this.config.user = crypto.randomUUID();
     return Object.assign(await super.flags(operation, model, flags), {
       UUID: this.config.user,
-    }) as PouchFlags;
+    }) as FlagsOf<C>;
   }
 
   /**
@@ -237,7 +237,7 @@ export class PouchAdapter extends CouchDBAdapter<
    * @param models - The model constructors to create indexes for
    * @return {Promise<void>} A promise that resolves when all indexes are created
    */
-  protected async index<M extends Model>(
+  protected override async index<M extends Model>(
     ...models: Constructor<M>[]
   ): Promise<void> {
     const indexes: CreateIndexRequest[] = generateIndexes(models);
@@ -277,10 +277,12 @@ export class PouchAdapter extends CouchDBAdapter<
    *     PouchAdapter-->>Client: Throws error
    *   end
    */
-  async create(
-    tableName: string,
-    id: string | number,
-    model: Record<string, any>
+  override async create<M extends Model>(
+    tableName: Constructor<M>,
+    id: PrimaryKeyType,
+    model: Record<string, any>,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    ...args: ContextualArgs<C>
   ): Promise<Record<string, any>> {
     let response: Response;
     try {
@@ -291,7 +293,7 @@ export class PouchAdapter extends CouchDBAdapter<
 
     if (!response.ok)
       throw new InternalError(
-        `Failed to insert doc id: ${id} in table ${tableName}`
+        `Failed to insert doc id: ${id} in table ${Model.tableName(tableName)}`
       );
     return this.assignMetadata(model, response.rev);
   }
@@ -322,10 +324,12 @@ export class PouchAdapter extends CouchDBAdapter<
    *     PouchAdapter-->>Client: Throws InternalError
    *   end
    */
-  override async createAll(
-    tableName: string,
-    ids: string[] | number[],
-    models: Record<string, any>[]
+  override async createAll<M extends Model>(
+    tableName: Constructor<M>,
+    ids: PrimaryKeyType[],
+    models: Record<string, any>[],
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    ...args: ContextualArgs<C>
   ): Promise<Record<string, any>[]> {
     let response: Response[] | Err[];
     try {
@@ -376,11 +380,13 @@ export class PouchAdapter extends CouchDBAdapter<
    *     PouchAdapter-->>Client: Throws error
    *   end
    */
-  async read(
-    tableName: string,
-    id: string | number
+  override async read<M extends Model>(
+    tableName: Constructor<M>,
+    id: PrimaryKeyType,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    ...args: ContextualArgs<C>
   ): Promise<Record<string, any>> {
-    const _id = this.generateId(tableName, id);
+    const _id = this.generateId(Model.tableName(tableName), id);
     let record: IdMeta & GetMeta;
     try {
       record = await this.client.get(_id);
@@ -416,12 +422,15 @@ export class PouchAdapter extends CouchDBAdapter<
    *     PouchAdapter-->>Client: Throws error
    *   end
    */
-  override async readAll(
-    tableName: string,
-    ids: (string | number | bigint)[]
+  override async readAll<M extends Model>(
+    tableName: Constructor<M>,
+    ids: (string | number | bigint)[],
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    ...args: ContextualArgs<C>
   ): Promise<Record<string, any>[]> {
+    const table = Model.tableName(tableName);
     const results: BulkGetResponse<any> = await this.client.bulkGet({
-      docs: ids.map((id) => ({ id: this.generateId(tableName, id as any) })),
+      docs: ids.map((id) => ({ id: this.generateId(table, id as any) })),
     });
     const res = results.results.reduce((accum: any[], r) => {
       r.docs.forEach((d) => {
@@ -465,10 +474,12 @@ export class PouchAdapter extends CouchDBAdapter<
    *     PouchAdapter-->>Client: Throws error
    *   end
    */
-  override async update(
-    tableName: string,
-    id: string | number,
-    model: Record<string, any>
+  override async update<M extends Model>(
+    tableName: Constructor<M>,
+    id: PrimaryKeyType,
+    model: Record<string, any>,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    ...args: ContextualArgs<C>
   ): Promise<Record<string, any>> {
     let response: Response;
     try {
@@ -479,7 +490,7 @@ export class PouchAdapter extends CouchDBAdapter<
 
     if (!response.ok)
       throw new InternalError(
-        `Failed to update doc id: ${id} in table ${tableName}`
+        `Failed to update doc id: ${id} in table ${Model.tableName(tableName)}`
       );
     return this.assignMetadata(model, response.rev);
   }
@@ -510,10 +521,12 @@ export class PouchAdapter extends CouchDBAdapter<
    *     PouchAdapter-->>Client: Throws InternalError
    *   end
    */
-  override async updateAll(
-    tableName: string,
-    ids: string[] | number[],
-    models: Record<string, any>[]
+  override async updateAll<M extends Model>(
+    tableName: Constructor<M>,
+    ids: PrimaryKeyType[],
+    models: Record<string, any>[],
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    ...args: ContextualArgs<C>
   ): Promise<Record<string, any>[]> {
     let response: (Response | Err)[];
     try {
@@ -566,11 +579,13 @@ export class PouchAdapter extends CouchDBAdapter<
    *     PouchAdapter-->>Client: Throws error
    *   end
    */
-  override async delete(
-    tableName: string,
-    id: string | number
+  override async delete<M extends Model>(
+    tableName: Constructor<M>,
+    id: PrimaryKeyType,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    ...args: ContextualArgs<C>
   ): Promise<Record<string, any>> {
-    const _id = this.generateId(tableName, id);
+    const _id = this.generateId(Model.tableName(tableName), id);
     let record: IdMeta & GetMeta;
     try {
       record = await this.client.get(_id);
@@ -610,26 +625,48 @@ export class PouchAdapter extends CouchDBAdapter<
    *     PouchAdapter-->>Client: Throws InternalError
    *   end
    */
-  override async deleteAll(
-    tableName: string,
-    ids: (string | number | bigint)[]
+  override async deleteAll<M extends Model>(
+    tableName: Constructor<M>,
+    ids: (string | number | bigint)[],
+    ...args: ContextualArgs<C>
   ): Promise<Record<string, any>[]> {
+    const { log } = this.logCtx(args, this.deleteAll);
+    const table = Model.tableName(tableName);
     const results: BulkGetResponse<any> = await this.client.bulkGet({
-      docs: ids.map((id) => ({ id: this.generateId(tableName, id as any) })),
+      docs: ids.map((id) => ({ id: this.generateId(table, id as any) })),
     });
 
-    const deletion: (Response | Err)[] = await this.client.bulkDocs(
-      results.results.map((r) => {
-        (r as any)[CouchDBKeys.DELETED] = true;
-        return r;
-      })
+    const docsToDelete = results.results.reduce(
+      (accum: Record<string, any>[], r) => {
+        r.docs.forEach((d) => {
+          if ((d as any).error)
+            throw PouchAdapter.parseError(
+              ((d as { error: Err }).error as Error) ||
+                new InternalError("Missing valid response")
+            );
+          const next = Object.assign({}, (d as { ok: any }).ok);
+          next[CouchDBKeys.DELETED] = true;
+          accum.push(next);
+        });
+        return accum;
+      },
+      []
     );
 
-    const errs = deletion.filter((d) => (d as any).error);
-    if (errs.length) throw new InternalError(errs.join("\n"));
+    const deletion: (Response | Err)[] =
+      await this.client.bulkDocs(docsToDelete);
+
+    deletion.forEach((d) => {
+      if ((d as Err).error) log.error((d as Err).error);
+    });
 
     return results.results.reduce((accum: any[], r) => {
       r.docs.forEach((d) => {
+        if ((d as any).error || !(d as any).ok)
+          throw PouchAdapter.parseError(
+            ((d as { error: Err }).error as Error) ||
+              new InternalError("Missing valid response")
+          );
         const result = Object.assign({}, (d as { ok: any }).ok);
         accum.push(this.assignMetadata(result, (d as any).ok[CouchDBKeys.REV]));
       });
@@ -666,13 +703,24 @@ export class PouchAdapter extends CouchDBAdapter<
    *     PouchAdapter-->>Client: Throws error
    *   end
    */
-  async raw<V>(rawInput: MangoQuery, process = true): Promise<V> {
+  override async raw<V>(
+    rawInput: MangoQuery,
+    docsOnly = true,
+    ...args: ContextualArgs<C>
+  ): Promise<V> {
     try {
       const response: FindResponse<any> = await this.client.find(
         rawInput as any
       );
-      if (response.warning) this.log.for(this.raw).warn(response.warning);
-      if (process) return response.docs as V;
+      if (response.warning) {
+        if (args.length) {
+          const { log } = this.logCtx(args, this.raw);
+          log.for(this.raw).warn(response.warning);
+        } else {
+          this.log.for(this.raw).warn(response.warning);
+        }
+      }
+      if (docsOnly) return response.docs as V;
       return response as V;
     } catch (e: any) {
       throw PouchAdapter.parseError(e);
@@ -687,8 +735,11 @@ export class PouchAdapter extends CouchDBAdapter<
    * @param {string} [reason] - Optional reason for the error
    * @return {BaseError} The converted error object
    */
-  override parseError(err: Error | string, reason?: string): BaseError {
-    return PouchAdapter.parseError(err, reason);
+  override parseError<E extends BaseError>(
+    err: Error | string,
+    reason?: string
+  ): E {
+    return PouchAdapter.parseError<E>(err, reason);
   }
 
   /**
@@ -730,15 +781,17 @@ export class PouchAdapter extends CouchDBAdapter<
    *     end
    *   end
    */
-  static override parseError(err: Error | string, reason?: string): BaseError {
-    // return super.parseError(err, reason);
-    if (err instanceof BaseError) return err as any;
+  static override parseError<E extends BaseError>(
+    err: Error | string,
+    reason?: string
+  ): E {
+    if (err instanceof BaseError) return err as E;
     let code: string = "";
     if (typeof err === "string") {
       code = err;
       if (code.match(/already exist|update conflict/g))
-        return new ConflictError(code);
-      if (code.match(/missing|deleted/g)) return new NotFoundError(code);
+        return new ConflictError(code) as E;
+      if (code.match(/missing|deleted/g)) return new NotFoundError(code) as E;
     } else if ((err as any).status) {
       code = (err as any).status;
       reason = reason || err.message;
@@ -750,17 +803,17 @@ export class PouchAdapter extends CouchDBAdapter<
       case "401":
       case "412":
       case "409":
-        return new ConflictError(reason as string);
+        return new ConflictError(reason as string) as E;
       case "404":
-        return new NotFoundError(reason as string);
+        return new NotFoundError(reason as string) as E;
       case "400":
         if (code.toString().match(/No\sindex\sexists/g))
-          return new IndexError(err);
-        return new InternalError(err);
+          return new IndexError(err) as E;
+        return new InternalError(err) as E;
       default:
         if (code.toString().match(/ECONNREFUSED/g))
-          return new ConnectionError(err);
-        return new InternalError(err);
+          return new ConnectionError(err) as E;
+        return new InternalError(err) as E;
     }
   }
 
