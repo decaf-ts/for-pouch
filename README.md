@@ -28,7 +28,7 @@ A PouchDB-backed adapter and repository integration for the decaf-ts ecosystem. 
 
 Documentation available [here](https://decaf-ts.github.io/for-pouch/)
 
-Minimal size: 1.7 KB kb gzipped
+Minimal size: 1.8 KB kb gzipped
 
 
 # decaf-ts / for-pouch — Detailed Description
