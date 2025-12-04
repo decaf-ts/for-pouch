@@ -15,8 +15,7 @@ import {
 import { Model } from "@decaf-ts/decorator-validation";
 import { ServerScope } from "nano";
 import { ConflictError, NotFoundError } from "@decaf-ts/db-decorators";
-import { Condition, Sequence } from "@decaf-ts/core";
-import { Sequence as Seq } from "@decaf-ts/for-couchdb";
+import { Condition, Sequence, SequenceModel } from "@decaf-ts/core";
 import { CouchDBRepository } from "@decaf-ts/for-couchdb";
 import { NanoAdapter } from "@decaf-ts/for-nano";
 import { PouchAdapter, PouchRepository } from "../../src";
@@ -53,7 +52,7 @@ describe("Adapter Integration", () => {
     await NanoAdapter.deleteDatabase(con, dbName);
   });
 
-  let sequenceRepository: PouchRepository<Seq>;
+  let sequenceRepository: PouchRepository<SequenceModel>;
   let userRepository: PouchRepository<TestUserModel>;
   let testDummyCountryModelRepository: PouchRepository<TestDummyCountry>;
   let testPhoneModelRepository: PouchRepository<TestPhoneModel>;
@@ -67,14 +66,11 @@ describe("Adapter Integration", () => {
   let model: any;
 
   beforeAll(async () => {
-    sequenceRepository = new CouchDBRepository(adapter, Seq);
+    sequenceRepository = new CouchDBRepository(adapter, SequenceModel);
     expect(sequenceRepository).toBeDefined();
 
     userRepository = new CouchDBRepository(adapter, TestUserModel);
-    testPhoneModelRepository = new CouchDBRepository(
-      adapter,
-      TestPhoneModel
-    );
+    testPhoneModelRepository = new CouchDBRepository(adapter, TestPhoneModel);
     testAddressModelRepository = new CouchDBRepository(
       adapter,
       TestAddressModel
@@ -230,9 +226,7 @@ describe("Adapter Integration", () => {
         const deleted = await noPopulateOnceModelRepository.delete(created.id);
         expect(deleted.country).toEqual(countryCurVal + 2);
 
-        const c = await testDummyCountryModelRepository.read(
-          countryCurVal + 1
-        );
+        const c = await testDummyCountryModelRepository.read(countryCurVal + 1);
         expect(c).toBeDefined();
       });
 
