@@ -1,4 +1,4 @@
-import { RepositoryFlags } from "@decaf-ts/db-decorators";
+import { AdapterFlags } from "@decaf-ts/core";
 
 /**
  * @description Flags specific to PouchDB repository operations
@@ -7,7 +7,7 @@ import { RepositoryFlags } from "@decaf-ts/db-decorators";
  * @interface PouchFlags
  * @memberOf module:for-pouch
  */
-export interface PouchFlags extends RepositoryFlags {
+export interface PouchFlags extends AdapterFlags {
   /**
    * @description Unique identifier for the current user or operation
    */

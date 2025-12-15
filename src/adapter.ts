@@ -10,7 +10,6 @@ import {
 import {
   BaseError,
   ConflictError,
-  Context,
   InternalError,
   NotFoundError,
   onCreate,
@@ -21,8 +20,8 @@ import {
 import {
   Adapter,
   ConnectionError,
+  Context,
   ContextualArgs,
-  FlagsOf,
   PersistenceKeys,
   RelationsMetadata,
   UnsupportedError,
@@ -140,9 +139,11 @@ export async function createdByOnPouchCreateUpdate<
  *   PouchDB-->>PouchAdapter: Document
  *   PouchAdapter-->>Client: Model
  */
-export class PouchAdapter<
-  C extends Context<PouchFlags> = Context<PouchFlags>,
-> extends CouchDBAdapter<PouchConfig, Database, C> {
+export class PouchAdapter extends CouchDBAdapter<
+  PouchConfig,
+  Database,
+  Context<PouchFlags>
+> {
   constructor(config: PouchConfig, alias?: string) {
     super(config, PouchFlavour, alias);
   }
@@ -221,12 +222,13 @@ export class PouchAdapter<
   protected override async flags<M extends Model>(
     operation: OperationKeys,
     model: Constructor<M>,
-    flags: Partial<FlagsOf<C>>
-  ): Promise<FlagsOf<C>> {
+    flags: Partial<PouchFlags>,
+    ...args: any[]
+  ): Promise<PouchFlags> {
     if (!this.config.user) this.config.user = crypto.randomUUID();
-    return Object.assign(await super.flags(operation, model, flags), {
+    return Object.assign(await super.flags(operation, model, flags, ...args), {
       UUID: this.config.user,
-    }) as FlagsOf<C>;
+    });
   }
 
   /**
@@ -282,7 +284,7 @@ export class PouchAdapter<
     id: PrimaryKeyType,
     model: Record<string, any>,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    ...args: ContextualArgs<C>
+    ...args: ContextualArgs<Context<PouchFlags>>
   ): Promise<Record<string, any>> {
     let response: Response;
     try {
@@ -329,7 +331,7 @@ export class PouchAdapter<
     ids: PrimaryKeyType[],
     models: Record<string, any>[],
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    ...args: ContextualArgs<C>
+    ...args: ContextualArgs<Context<PouchFlags>>
   ): Promise<Record<string, any>[]> {
     let response: Response[] | Err[];
     try {
@@ -384,7 +386,7 @@ export class PouchAdapter<
     tableName: Constructor<M>,
     id: PrimaryKeyType,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    ...args: ContextualArgs<C>
+    ...args: ContextualArgs<Context<PouchFlags>>
   ): Promise<Record<string, any>> {
     const _id = this.generateId(Model.tableName(tableName), id);
     let record: IdMeta & GetMeta;
@@ -426,7 +428,7 @@ export class PouchAdapter<
     tableName: Constructor<M>,
     ids: (string | number | bigint)[],
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    ...args: ContextualArgs<C>
+    ...args: ContextualArgs<Context<PouchFlags>>
   ): Promise<Record<string, any>[]> {
     const table = Model.tableName(tableName);
     const results: BulkGetResponse<any> = await this.client.bulkGet({
@@ -479,7 +481,7 @@ export class PouchAdapter<
     id: PrimaryKeyType,
     model: Record<string, any>,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    ...args: ContextualArgs<C>
+    ...args: ContextualArgs<Context<PouchFlags>>
   ): Promise<Record<string, any>> {
     let response: Response;
     try {
@@ -526,7 +528,7 @@ export class PouchAdapter<
     ids: PrimaryKeyType[],
     models: Record<string, any>[],
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    ...args: ContextualArgs<C>
+    ...args: ContextualArgs<Context<PouchFlags>>
   ): Promise<Record<string, any>[]> {
     let response: (Response | Err)[];
     try {
@@ -583,7 +585,7 @@ export class PouchAdapter<
     tableName: Constructor<M>,
     id: PrimaryKeyType,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    ...args: ContextualArgs<C>
+    ...args: ContextualArgs<Context<PouchFlags>>
   ): Promise<Record<string, any>> {
     const _id = this.generateId(Model.tableName(tableName), id);
     let record: IdMeta & GetMeta;
@@ -628,7 +630,7 @@ export class PouchAdapter<
   override async deleteAll<M extends Model>(
     tableName: Constructor<M>,
     ids: (string | number | bigint)[],
-    ...args: ContextualArgs<C>
+    ...args: ContextualArgs<Context<PouchFlags>>
   ): Promise<Record<string, any>[]> {
     const { log } = this.logCtx(args, this.deleteAll);
     const table = Model.tableName(tableName);
@@ -657,7 +659,8 @@ export class PouchAdapter<
       await this.client.bulkDocs(docsToDelete);
 
     deletion.forEach((d) => {
-      if ((d as Err).error) log.error((d as Err).error);
+      const err = (d as Err).error;
+      if (err) log.error(String(err));
     });
 
     return results.results.reduce((accum: any[], r) => {
@@ -706,7 +709,7 @@ export class PouchAdapter<
   override async raw<V>(
     rawInput: MangoQuery,
     docsOnly = true,
-    ...args: ContextualArgs<C>
+    ...args: ContextualArgs<Context<PouchFlags>>
   ): Promise<V> {
     try {
       const response: FindResponse<any> = await this.client.find(
