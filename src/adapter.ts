@@ -21,6 +21,7 @@ import {
   Adapter,
   ConnectionError,
   Context,
+  ContextOf,
   ContextualArgs,
   PersistenceKeys,
   RelationsMetadata,
@@ -66,7 +67,7 @@ export async function createdByOnPouchCreateUpdate<
   V extends RelationsMetadata,
 >(
   this: R,
-  context: Context<PouchFlags>,
+  context: ContextOf<R>,
   data: V,
   key: keyof M,
   model: M
@@ -226,9 +227,17 @@ export class PouchAdapter extends CouchDBAdapter<
     ...args: any[]
   ): Promise<PouchFlags> {
     if (!this.config.user) this.config.user = crypto.randomUUID();
-    return Object.assign(await super.flags(operation, model, flags, ...args), {
-      UUID: this.config.user,
-    });
+    return super.flags(
+      operation,
+      model,
+      Object.assign(
+        {
+          UUID: this.config.user,
+        },
+        flags
+      ),
+      ...args
+    );
   }
 
   /**
