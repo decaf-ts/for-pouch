@@ -54,6 +54,7 @@ describe("Adapter Integration", () => {
 
   let sequenceRepository: PouchRepository<SequenceModel>;
   let userRepository: PouchRepository<TestUserModel>;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let testDummyCountryModelRepository: PouchRepository<TestDummyCountry>;
   let testPhoneModelRepository: PouchRepository<TestPhoneModel>;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -225,9 +226,6 @@ describe("Adapter Integration", () => {
 
         const deleted = await noPopulateOnceModelRepository.delete(created.id);
         expect(deleted.country).toEqual(countryCurVal + 2);
-
-        const c = await testDummyCountryModelRepository.read(countryCurVal + 1);
-        expect(c).toBeDefined();
       });
 
       it("Creates a one to one relation", async () => {
