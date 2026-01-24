@@ -32,6 +32,8 @@ export interface PouchFlags extends AdapterFlags {
 export type PouchConfig = {
   user?: string;
   password?: string;
+  adminUser?: string;
+  adminPassword?: string;
   host?: string;
   protocol?: "http" | "https";
   port?: number;

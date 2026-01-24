@@ -14,14 +14,28 @@ export async function getHttpPouch(
   dbName: string,
   user: string,
   pass: string,
-  alias?: string
+  alias?: string,
+  adminUser?: string,
+  adminPassword?: string
 ) {
   const pouchHttp = await normalizeImport(import("pouchdb-adapter-http"));
+  const resolvedAdminUser =
+    adminUser ??
+    process.env.POUCH_ADMIN_USER ??
+    process.env.COUCHDB_ADMIN_USER ??
+    user;
+  const resolvedAdminPassword =
+    adminPassword ??
+    process.env.POUCH_ADMIN_PASSWORD ??
+    process.env.COUCHDB_ADMIN_PASSWORD ??
+    pass;
   return new PouchAdapter(
     {
       protocol: protocol,
       user: user,
       password: pass,
+      adminUser: resolvedAdminUser,
+      adminPassword: resolvedAdminPassword,
       host: apiEndpoint,
       dbName: dbName,
       plugins: [pouchHttp],

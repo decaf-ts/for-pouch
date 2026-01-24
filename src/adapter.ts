@@ -1,12 +1,15 @@
 import "reflect-metadata";
+import { randomUUID } from "crypto";
 import {
   CouchDBAdapter,
   CouchDBKeys,
   CreateIndexRequest,
   generateIndexes,
-  IndexError,
+  generateViews,
   MangoQuery,
+  ViewResponse,
 } from "@decaf-ts/for-couchdb";
+import { IndexError } from "@decaf-ts/for-couchdb";
 import {
   BaseError,
   ConflictError,
@@ -19,12 +22,13 @@ import {
 } from "@decaf-ts/db-decorators";
 import {
   Adapter,
-  ConnectionError,
   Context,
   ContextOf,
   ContextualArgs,
   PersistenceKeys,
   RelationsMetadata,
+  Repository,
+  ConnectionError,
   UnsupportedError,
 } from "@decaf-ts/core";
 import Database = PouchDB.Database;
@@ -32,7 +36,6 @@ import Response = PouchDB.Core.Response;
 import Err = PouchDB.Core.Error;
 import IdMeta = PouchDB.Core.IdMeta;
 import GetMeta = PouchDB.Core.GetMeta;
-import CreateIndexResponse = PouchDB.Find.CreateIndexResponse;
 import { Model } from "@decaf-ts/decorator-validation";
 import BulkGetResponse = PouchDB.Core.BulkGetResponse;
 import FindResponse = PouchDB.Find.FindResponse;
@@ -82,7 +85,6 @@ export async function createdByOnPouchCreateUpdate<
     );
   }
 }
-
 /**
  * @description PouchDB implementation of the CouchDBAdapter
  * @summary Concrete adapter that bridges the generic CouchDBAdapter to a PouchDB backend. It supports CRUD (single and bulk), indexing and Mango queries, and wires flavour-specific decorations.
@@ -149,6 +151,57 @@ export class PouchAdapter extends CouchDBAdapter<
     super(config, PouchFlavour, alias);
   }
 
+  private _adminClient?: Database;
+  private _pluginsRegistered = false;
+
+  private registerPlugins(): void {
+    if (this._pluginsRegistered) return;
+    const plugins = [
+      PouchMapReduce,
+      PouchReplication,
+      PouchFind,
+      ...this.config.plugins,
+    ];
+    for (const plugin of plugins) {
+      try {
+        PouchDB.plugin(plugin);
+      } catch (e: any) {
+        if (e instanceof Error && e.message.includes("redefine property")) continue;
+        throw e;
+      }
+    }
+    this._pluginsRegistered = true;
+  }
+
+  private buildClient(user?: string, password?: string): Database {
+    this.registerPlugins();
+    const { host, protocol, dbName, storagePath } = this.config;
+    try {
+      if (host) {
+        const authUser = user ? encodeURIComponent(user) : "";
+        const authPassword = user && password ? `:${encodeURIComponent(password)}` : "";
+        const credentials = user ? `${authUser}${authPassword}@` : "";
+        return new PouchDB(`${protocol}://${credentials}${host}/${dbName}`);
+      }
+      return new PouchDB(`${storagePath || DefaultLocalStoragePath}/${dbName}`);
+    } catch (e: unknown) {
+      throw new InternalError(`Failed to create PouchDB client: ${e}`);
+    }
+  }
+
+  protected getAdminClient(): Database {
+    if (!this.config.adminUser) {
+      return this.getClient();
+    }
+    if (!this._adminClient) {
+      this._adminClient = this.buildClient(
+        this.config.adminUser,
+        this.config.adminPassword ?? this.config.password
+      );
+    }
+    return this._adminClient;
+  }
+
   /**
    * @description Lazily initializes and returns the underlying PouchDB client
    * @summary Loads required PouchDB plugins once, builds the connection URL or local storage path from config, and caches the Database instance for reuse. Throws InternalError if client creation fails.
@@ -175,37 +228,7 @@ export class PouchAdapter extends CouchDBAdapter<
    */
   override getClient(): Database {
     if (!this._client) {
-      const plugins = [
-        PouchMapReduce,
-        PouchReplication,
-        PouchFind,
-        ...this.config.plugins,
-      ];
-      for (const plugin of plugins) {
-        try {
-          PouchDB.plugin(plugin);
-        } catch (e: any) {
-          if (e instanceof Error && e.message.includes("redefine property"))
-            continue; //plugin has already been loaded so it's ok
-          throw e;
-        }
-      }
-
-      const { host, protocol, user, password, dbName, storagePath } =
-        this.config;
-
-      try {
-        if (host && user) {
-          this._client = new PouchDB(
-            `${protocol}://${user}:${password}@${host}/${dbName}`
-          );
-        } else
-          this._client = new PouchDB(
-            `${storagePath || DefaultLocalStoragePath}/${dbName}`
-          );
-      } catch (e: unknown) {
-        throw new InternalError(`Failed to create PouchDB client: ${e}`);
-      }
+      this._client = this.buildClient(this.config.user, this.config.password);
     }
     return this._client as Database;
   }
@@ -226,7 +249,7 @@ export class PouchAdapter extends CouchDBAdapter<
     flags: Partial<PouchFlags>,
     ...args: any[]
   ): Promise<PouchFlags> {
-    if (!this.config.user) this.config.user = crypto.randomUUID();
+    if (!this.config.user) this.config.user = randomUUID();
     return super.flags(
       operation,
       model,
@@ -240,6 +263,15 @@ export class PouchAdapter extends CouchDBAdapter<
     );
   }
 
+  override repository<
+    R extends Repository<
+      any,
+      Adapter<PouchConfig, Database, MangoQuery, Context<PouchFlags>>
+    >,
+  >(): Constructor<R> {
+    return PouchRepository as unknown as Constructor<R>;
+  }
+
   /**
    * @description Creates database indexes for the given models
    * @summary Generates and creates indexes in the PouchDB database based on the provided model constructors.
@@ -251,14 +283,73 @@ export class PouchAdapter extends CouchDBAdapter<
   protected override async index<M extends Model>(
     ...models: Constructor<M>[]
   ): Promise<void> {
-    const indexes: CreateIndexRequest[] = generateIndexes(models);
-    for (const index of indexes) {
-      const res: CreateIndexResponse<any> = await this.client.createIndex(
-        index as any
+    const client = this.getAdminClient();
+    try {
+      const MAX_INDEX_ATTEMPTS = 3;
+      const indexes: CreateIndexRequest[] = generateIndexes(models);
+      const existingIndexNames = new Set<string>();
+      try {
+        const response = await (client as any).get("_index");
+        const existing = response?.indexes || [];
+        existing.forEach((idx: any) => {
+          if (idx.name) existingIndexNames.add(idx.name);
+        });
+      } catch {
+        // ignore if _index endpoint is unavailable
+      }
+      for (const index of indexes) {
+        const indexName = index.name ?? index.ddoc ?? "index";
+        if (existingIndexNames.has(indexName)) continue;
+        let attempts = 0;
+        while (true) {
+          try {
+            await client.createIndex(index as any);
+            existingIndexNames.add(indexName);
+            break;
+          } catch (e: any) {
+            if (e?.status === 409 || e?.error === "conflict") break;
+            if (e?.status === 500) {
+              attempts += 1;
+              const docId =
+                `_design/${index.ddoc ?? indexName}`;
+              try {
+                const existing = await client.get(docId);
+                await client.remove(docId, existing._rev);
+              } catch {
+                // ignore missing doc or removal errors
+              }
+              if (attempts >= MAX_INDEX_ATTEMPTS) break;
+              await new Promise((resolve) =>
+                setTimeout(resolve, 100 * attempts)
+              );
+              continue;
+            }
+            throw e;
+          }
+        }
+      }
+
+      const views = generateViews(models);
+      for (const view of views) {
+        try {
+          await client.put(view as any);
+        } catch (e: any) {
+          if (e?.status === 409 || e?.error === "conflict") {
+            const existing = await client.get(view._id);
+            await client.put({
+              ...(view as any),
+              _rev: existing._rev,
+            } as any);
+          } else {
+            throw e;
+          }
+        }
+      }
+    } catch (e: any) {
+      console.warn(
+        "Unable to create indexes/views for PouchAdapter, proceeding without them.",
+        e
       );
-      const { result } = res;
-      if (result === "existing")
-        throw new ConflictError(`Index ${index.name} already exists`);
     }
   }
 
@@ -346,7 +437,7 @@ export class PouchAdapter extends CouchDBAdapter<
     try {
       response = await this.client.bulkDocs(models);
     } catch (e: any) {
-      throw PouchAdapter.parseError(e);
+      throw this.parseError(e);
     }
     if (!response.every((r: Response | Err) => (r as Response).ok)) {
       const errors = response.reduce((accum: string[], el, i) => {
@@ -402,7 +493,7 @@ export class PouchAdapter extends CouchDBAdapter<
     try {
       record = await this.client.get(_id);
     } catch (e: any) {
-      throw PouchAdapter.parseError(e);
+      throw this.parseError(e);
     }
     return this.assignMetadata(record, record._rev);
   }
@@ -446,7 +537,7 @@ export class PouchAdapter extends CouchDBAdapter<
     const res = results.results.reduce((accum: any[], r) => {
       r.docs.forEach((d) => {
         if ((d as any).error || !(d as any).ok)
-          throw PouchAdapter.parseError(
+          throw this.parseError(
             ((d as { error: Err }).error as Error) ||
               new InternalError("Missing valid response")
           );
@@ -496,7 +587,7 @@ export class PouchAdapter extends CouchDBAdapter<
     try {
       response = await this.client.put(model);
     } catch (e: any) {
-      throw PouchAdapter.parseError(e);
+      throw this.parseError(e);
     }
 
     if (!response.ok)
@@ -543,7 +634,7 @@ export class PouchAdapter extends CouchDBAdapter<
     try {
       response = await this.client.bulkDocs(models);
     } catch (e: any) {
-      throw PouchAdapter.parseError(e);
+      throw this.parseError(e);
     }
     if (!response.every((r) => !(r as any).error)) {
       const errors = response.reduce((accum: string[], el, i) => {
@@ -602,7 +693,7 @@ export class PouchAdapter extends CouchDBAdapter<
       record = await this.client.get(_id);
       await this.client.remove(_id, record._rev);
     } catch (e: any) {
-      throw PouchAdapter.parseError(e);
+      throw this.parseError(e);
     }
     return this.assignMetadata(record, record._rev);
   }
@@ -651,7 +742,7 @@ export class PouchAdapter extends CouchDBAdapter<
       (accum: Record<string, any>[], r) => {
         r.docs.forEach((d) => {
           if ((d as any).error)
-            throw PouchAdapter.parseError(
+            throw this.parseError(
               ((d as { error: Err }).error as Error) ||
                 new InternalError("Missing valid response")
             );
@@ -675,7 +766,7 @@ export class PouchAdapter extends CouchDBAdapter<
     return results.results.reduce((accum: any[], r) => {
       r.docs.forEach((d) => {
         if ((d as any).error || !(d as any).ok)
-          throw PouchAdapter.parseError(
+          throw this.parseError(
             ((d as { error: Err }).error as Error) ||
               new InternalError("Missing valid response")
           );
@@ -688,32 +779,11 @@ export class PouchAdapter extends CouchDBAdapter<
 
   /**
    * @description Executes a raw Mango query against the database
-   * @summary Performs a direct find operation using a Mango query object.
-   * This method allows for complex queries beyond the standard CRUD operations.
-   * @template V - The return type
+   * @summary Runs a Mango query and optionally returns only the documents array or the entire response
+   * @template V - The return value type
    * @param {MangoQuery} rawInput - The Mango query to execute
-   * @param {boolean} [process=true] - Whether to process the response (true returns just docs, false returns full response)
-   * @return {Promise<V>} A promise that resolves to the query results
-   * @mermaid
-   * sequenceDiagram
-   *   participant Client
-   *   participant PouchAdapter
-   *   participant PouchDB
-   *
-   *   Client->>PouchAdapter: raw<V>(rawInput, process)
-   *   PouchAdapter->>PouchDB: find(rawInput)
-   *   alt Success
-   *     PouchDB-->>PouchAdapter: FindResponse
-   *     alt process=true
-   *       PouchAdapter-->>Client: response.docs as V
-   *     else process=false
-   *       PouchAdapter-->>Client: response as V
-   *     end
-   *   else Error
-   *     PouchDB-->>PouchAdapter: Error
-   *     PouchAdapter->>PouchAdapter: parseError(e)
-   *     PouchAdapter-->>Client: Throws error
-   *   end
+   * @param {boolean} [docsOnly=true] - Whether to return only the documents array
+   * @return {Promise<V>} A promise resolving the query result
    */
   override async raw<V>(
     rawInput: MangoQuery,
@@ -721,21 +791,30 @@ export class PouchAdapter extends CouchDBAdapter<
     ...args: ContextualArgs<Context<PouchFlags>>
   ): Promise<V> {
     try {
-      const response: FindResponse<any> = await this.client.find(
-        rawInput as any
-      );
+      const response: FindResponse<any> = await this.client.find(rawInput as any);
       if (response.warning) {
-        if (args.length) {
-          const { log } = this.logCtx(args, this.raw);
-          log.for(this.raw).warn(response.warning);
-        } else {
-          this.log.for(this.raw).warn(response.warning);
-        }
+        const { log } = await this.logCtx(args, this.raw, true);
+        log.for(this.raw).warn(response.warning);
       }
       if (docsOnly) return response.docs as V;
       return response as V;
     } catch (e: any) {
-      throw PouchAdapter.parseError(e);
+      throw this.parseError(e);
+    }
+  }
+
+  async view<R>(
+    ddoc: string,
+    viewName: string,
+    options: Record<string, any>,
+    ..._args: ContextualArgs<Context<PouchFlags>>
+  ): Promise<ViewResponse<R>> {
+    void _args;
+    try {
+      const queryName = `${ddoc}/${viewName}`;
+      return (await this.client.query(queryName, options)) as ViewResponse<R>;
+    } catch (e: any) {
+      throw this.parseError(e);
     }
   }
 
@@ -775,22 +854,26 @@ export class PouchAdapter extends CouchDBAdapter<
    *     else contains "missing" or "deleted"
    *       PouchAdapter-->>Caller: NotFoundError
    *     end
-   *   else err has status
-   *     alt status is 401, 412, 409
-   *       PouchAdapter-->>Caller: ConflictError
-   *     else status is 404
-   *       PouchAdapter-->>Caller: NotFoundError
-   *     else status is 400
-   *       alt message contains "No index exists"
-   *         PouchAdapter-->>Caller: IndexError
-   *       else
-   *         PouchAdapter-->>Caller: InternalError
-   *       end
-   *     else message contains "ECONNREFUSED"
-   *       PouchAdapter-->>Caller: ConnectionError
+   *   else err has status/statusCode/code
+   *     Note over PouchAdapter: Extract code and reason
+   *   else
+   *     Note over PouchAdapter: Use err.message as code
+   *   end
+   *
+   *   Note over PouchAdapter: Switch on code
+   *   alt code is 401, 412, or 409
+   *     PouchAdapter->>ErrorTypes: ConflictError
+   *   else code is 404
+   *     PouchAdapter->>ErrorTypes: NotFoundError
+   *   else code is 400
+   *     alt code contains "No index exists"
+   *       PouchAdapter->>ErrorTypes: IndexError
    *     else
-   *       PouchAdapter-->>Caller: InternalError
-   *     end
+   *       PouchAdapter->>ErrorTypes: InternalError
+   *   else code contains "ECONNREFUSED"
+   *     PouchAdapter->>ErrorTypes: ConnectionError
+   *   else
+   *     PouchAdapter->>ErrorTypes: InternalError
    *   end
    */
   static override parseError<E extends BaseError>(
@@ -806,6 +889,12 @@ export class PouchAdapter extends CouchDBAdapter<
       if (code.match(/missing|deleted/g)) return new NotFoundError(code) as E;
     } else if ((err as any).status) {
       code = (err as any).status;
+      reason = reason || err.message;
+    } else if ((err as any).code) {
+      code = (err as any).code;
+      reason = reason || err.message;
+    } else if ((err as any).statusCode) {
+      code = (err as any).statusCode;
       reason = reason || err.message;
     } else {
       code = err.message;
@@ -833,29 +922,6 @@ export class PouchAdapter extends CouchDBAdapter<
    * @description Sets up decorations for PouchDB-specific model properties
    * @summary Configures decorators for createdBy and updatedBy fields in models.
    * This method defines how these fields should be automatically populated during create and update operations.
-   * @mermaid
-   * sequenceDiagram
-   *   participant Caller
-   *   participant PouchAdapter
-   *   participant Decoration
-   *
-   *   Caller->>PouchAdapter: decoration()
-   *   PouchAdapter->>Repository: key(PersistenceKeys.CREATED_BY)
-   *   Repository-->>PouchAdapter: createdByKey
-   *   PouchAdapter->>Repository: key(PersistenceKeys.UPDATED_BY)
-   *   Repository-->>PouchAdapter: updatedByKey
-   *
-   *   PouchAdapter->>Decoration: flavouredAs(PouchFlavour)
-   *   Decoration-->>PouchAdapter: DecoratorBuilder
-   *   PouchAdapter->>Decoration: for(createdByKey)
-   *   PouchAdapter->>Decoration: define(onCreate, propMetadata)
-   *   PouchAdapter->>Decoration: apply()
-   *
-   *   PouchAdapter->>Decoration: flavouredAs(PouchFlavour)
-   *   Decoration-->>PouchAdapter: DecoratorBuilder
-   *   PouchAdapter->>Decoration: for(updatedByKey)
-   *   PouchAdapter->>Decoration: define(onCreate, propMetadata)
-   *   PouchAdapter->>Decoration: apply()
    */
   static override decoration() {
     super.decoration();
