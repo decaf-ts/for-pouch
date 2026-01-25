@@ -1,6 +1,6 @@
 {
   "name": "@decaf-ts/for-pouch",
-  "version": "0.3.18",
+  "version": "0.3.19",
   "description": "decaf-ts persistence adapter for PouchDB",
   "type": "module",
   "exports": {
