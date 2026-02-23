@@ -22,11 +22,11 @@
     "docker:build-booter": "docker build -t ghcr.io/decaf-ts/couchdb-booter:$(cat package.json | jq -r '.version') -t ghcr.io/decaf-ts/couchdb-booter:latest -f ./docker/Dockerfile-booter ./docker",
     "docker:build-couchdb": "docker build -t ghcr.io/decaf-ts/couchdb:$(cat package.json | jq -r '.version') -t ghcr.io/decaf-ts/couchdb:latest -f ./docker/Dockerfile-couchdb ./docker",
     "test": "jest --runInBand --coverage --detectOpenHandles",
-    "test:unit": "jest --testPathPattern=\"/tests/unit\" --passWithNoTests --detectOpenHandles",
-    "test:integration": "jest --testPathPattern=\"/tests/(integration)\" --passWithNoTests --detectOpenHandles",
-    "test:all": "jest --testPathPattern=\"/tests\" --passWithNoTests",
+    "test:unit": "jest --testPathPatterns=\"/tests/unit\" --passWithNoTests --detectOpenHandles",
+    "test:integration": "jest --testPathPatterns=\"/tests/(integration)\" --passWithNoTests --detectOpenHandles",
+    "test:all": "jest --testPathPatterns=\"/tests\" --passWithNoTests",
     "test:circular": "dpdm -T --no-warning --no-tree ./src/index.ts",
-    "coverage": "rimraf ./workdocs/reports/data/*.json && npm run test:all -- --coverage --config=./workdocs/reports/jest.coverage.config.ts",
+    "coverage": "rimraf ./workdocs/reports/data/*.json && npm run test:all -- --coverage --config=./workdocs/reports/jest.coverage.config.cjs",
     "lint": "eslint .",
     "lint-fix": "eslint --fix .",
     "prepare-pr": "npm run lint-fix && npm run build:prod && npm run coverage && npm run docs",
@@ -79,6 +79,7 @@
   "devDependencies": {
     "@decaf-ts/for-nano": "latest",
     "@decaf-ts/utils": "latest",
+    "@types/jest": "^30.0.0",
     "@types/pouchdb": "^6.4.2",
     "@types/pouchdb-core": "^7.0.15",
     "@types/transform-pouch": "^1.0.6"
@@ -104,5 +105,9 @@
     "pouchdb-adapter-websql": "^7.0.0",
     "pouchdb-mapreduce": "^9.0.0",
     "pouchdb-replication": "^9.0.0"
+  },
+  "overrides": {
+    "minimatch": "^10.2.2",
+    "test-exclude": "7.0.1"
   }
 }

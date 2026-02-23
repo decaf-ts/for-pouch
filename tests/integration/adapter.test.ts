@@ -98,9 +98,9 @@ describe("Adapter Integration", () => {
 
     expect(updated).toBeDefined();
     expect(updated.equals(created)).toEqual(false);
-    expect(
-      updated.equals(created, "updatedAt", "updatedOn", "name")
-    ).toEqual(true); // minus the expected changes
+    expect(updated.equals(created, "updatedAt", "updatedOn", "name")).toEqual(
+      true
+    ); // minus the expected changes
     const metadata = (updated as any)[PersistenceKeys.METADATA];
     expect(metadata).toBeDefined();
   });
@@ -110,7 +110,7 @@ describe("Adapter Integration", () => {
     expect(deleted).toBeDefined();
     expect(deleted.equals(updated)).toEqual(true);
 
-    await expect(repo.read(created.id as number)).rejects.toThrowError(
+    await expect(repo.read(created.id as number)).rejects.toThrow(
       NotFoundError
     );
 
