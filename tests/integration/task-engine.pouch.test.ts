@@ -275,7 +275,10 @@ describe("Pouch task engine integration", () => {
   });
 
   it("records task events via the TaskEventModel repository", async () => {
-    const eventRepo = Repository.forModel(TaskEventModel, adapter.alias);
+    const eventRepo: Repo<TaskEventModel> = Repository.forModel(
+      TaskEventModel,
+      adapter.alias
+    );
     const composite = new TaskBuilder()
       .setClassification("pouch-progress-task")
       .setInput({ value: 2 })
