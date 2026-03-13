@@ -7,6 +7,7 @@ import {
   generateIndexes,
   generateViews,
   MangoQuery,
+  MangoResponse,
   ViewResponse,
 } from "@decaf-ts/for-couchdb";
 import { IndexError } from "@decaf-ts/for-couchdb";
@@ -488,7 +489,11 @@ export class PouchAdapter extends CouchDBAdapter<
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     ...args: ContextualArgs<Context<PouchFlags>>
   ): Promise<Record<string, any>> {
-    const _id = this.generateId(Model.tableName(tableName), id);
+    const { ctx } = this.logCtx(args, this.read);
+    const _id = this.generateId(Model.tableName(tableName), id, {
+      clazz: tableName,
+      ctx,
+    });
     let record: IdMeta & GetMeta;
     try {
       record = await this.client.get(_id);
@@ -531,8 +536,11 @@ export class PouchAdapter extends CouchDBAdapter<
     ...args: ContextualArgs<Context<PouchFlags>>
   ): Promise<Record<string, any>[]> {
     const table = Model.tableName(tableName);
+    const { ctx } = this.logCtx(args, this.readAll);
     const results: BulkGetResponse<any> = await this.client.bulkGet({
-      docs: ids.map((id) => ({ id: this.generateId(table, id as any) })),
+      docs: ids.map((id) => ({
+        id: this.generateId(table, id as any, { clazz: tableName, ctx }),
+      })),
     });
     const res = results.results.reduce((accum: any[], r) => {
       r.docs.forEach((d) => {
@@ -687,7 +695,11 @@ export class PouchAdapter extends CouchDBAdapter<
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     ...args: ContextualArgs<Context<PouchFlags>>
   ): Promise<Record<string, any>> {
-    const _id = this.generateId(Model.tableName(tableName), id);
+    const { ctx } = this.logCtx(args, this.delete);
+    const _id = this.generateId(Model.tableName(tableName), id, {
+      clazz: tableName,
+      ctx,
+    });
     let record: IdMeta & GetMeta;
     try {
       record = await this.client.get(_id);
@@ -732,10 +744,12 @@ export class PouchAdapter extends CouchDBAdapter<
     ids: (string | number | bigint)[],
     ...args: ContextualArgs<Context<PouchFlags>>
   ): Promise<Record<string, any>[]> {
-    const { log } = this.logCtx(args, this.deleteAll);
+    const { log, ctx } = this.logCtx(args, this.deleteAll);
     const table = Model.tableName(tableName);
     const results: BulkGetResponse<any> = await this.client.bulkGet({
-      docs: ids.map((id) => ({ id: this.generateId(table, id as any) })),
+      docs: ids.map((id) => ({
+        id: this.generateId(table, id as any, { clazz: tableName, ctx }),
+      })),
     });
 
     const docsToDelete = results.results.reduce(
@@ -790,10 +804,14 @@ export class PouchAdapter extends CouchDBAdapter<
     docsOnly = true,
     ...args: ContextualArgs<Context<PouchFlags>>
   ): Promise<V> {
+    const { ctx, log } = await this.logCtx(args, this.raw, true);
+    const nativePlan = this.resolveNativeIndexPlan(rawInput, ctx);
+    if (nativePlan) {
+      return (await this.executeNativeQuery<V>(nativePlan, docsOnly)) as V;
+    }
     try {
       const response: FindResponse<any> = await this.client.find(rawInput as any);
       if (response.warning) {
-        const { log } = await this.logCtx(args, this.raw, true);
         log.for(this.raw).warn(response.warning);
       }
       if (docsOnly) return response.docs as V;
@@ -801,6 +819,27 @@ export class PouchAdapter extends CouchDBAdapter<
     } catch (e: any) {
       throw this.parseError(e);
     }
+  }
+
+  private async executeNativeQuery<V>(
+    plan: NativeIndexPlan,
+    docsOnly: boolean
+  ): Promise<V> {
+    const response = await this.client.allDocs({
+      include_docs: true,
+      startkey: plan.startkey,
+      endkey: plan.endkey,
+      inclusive_end: plan.inclusiveEnd,
+      descending: plan.descending,
+      limit: plan.limit,
+      skip: plan.skip,
+    });
+    const docs =
+      response.rows
+        .map((row) => (row as any).doc)
+        .filter((doc: any) => !!doc) || [];
+    if (docsOnly) return docs as V;
+    return { docs } as MangoResponse<V>;
   }
 
   async view<R>(

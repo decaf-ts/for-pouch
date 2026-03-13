@@ -1,4 +1,4 @@
-import { AdapterFlags } from "@decaf-ts/core";
+import { CouchDBFlags } from "@decaf-ts/for-couchdb";
 
 /**
  * @description Flags specific to PouchDB repository operations
@@ -7,7 +7,7 @@ import { AdapterFlags } from "@decaf-ts/core";
  * @interface PouchFlags
  * @memberOf module:for-pouch
  */
-export interface PouchFlags extends AdapterFlags {
+export interface PouchFlags extends CouchDBFlags {
   /**
    * @description Unique identifier for the current user or operation
    */
