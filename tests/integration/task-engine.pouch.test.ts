@@ -278,7 +278,7 @@ describe("Pouch task engine integration", () => {
     const eventRepo: Repo<TaskEventModel> = Repository.forModel(
       TaskEventModel,
       adapter.alias
-    );
+    ).override({ afterQueryHandlers: true });
     const composite = new TaskBuilder()
       .setClassification("pouch-progress-task")
       .setInput({ value: 2 })
@@ -301,6 +301,8 @@ describe("Pouch task engine integration", () => {
     const statusPayloads = taskEvents
       .filter((evt) => evt.classification === TaskEventType.STATUS)
       .map((evt) => evt.payload?.status);
+    console.log("taskEvents payloads", taskEvents.map((evt) => evt.payload));
+    console.log("statusPayloads", statusPayloads);
     expect(statusPayloads).toContain(TaskStatus.SUCCEEDED);
   });
 
