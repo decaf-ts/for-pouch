@@ -162,7 +162,6 @@ describe("Pouch task engine integration", () => {
       adminPassword
     );
     await adapter.initialize();
-    Repository.forModel(TaskModel, adapter.alias);
 
     eventBus = new TaskEventBus();
     registry = new TaskHandlerRegistry();
