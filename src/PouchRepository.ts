@@ -14,13 +14,15 @@ export class PouchRepository<M extends Model> extends CouchDBRepository<
   M,
   PouchAdapter
 > {
-  constructor(adapter: PouchAdapter, model: Constructor<M>) {
-    super(adapter, model);
+  constructor(
+    adapter: PouchAdapter,
+    model: Constructor<M>,
+    force: boolean = false
+  ) {
+    super(adapter, model, force);
   }
 
-  override override(
-    flags: Partial<FlagsOf<ContextOf<PouchAdapter>>>
-  ): this {
+  override override(flags: Partial<FlagsOf<ContextOf<PouchAdapter>>>): this {
     return super.override(flags).for(flags as unknown as never);
   }
 }
