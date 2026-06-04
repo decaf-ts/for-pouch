@@ -6,6 +6,8 @@ Below are practical, valid TypeScript examples based on the repository’s tests
 
 You can work with a local/in-memory database (useful for tests) or a remote CouchDB-compatible server.
 
+The package expects the current PouchDB 9.x plugin line. If you need WebSQL, use the standalone `pouchdb-adapter-websql` plugin, which remains on the separate 7.x line.
+
 ```ts
 import { PouchAdapter, DefaultLocalStoragePath, VERSION } from "@decaf-ts/for-pouch";
 
