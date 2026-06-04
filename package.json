@@ -117,5 +117,8 @@
     "pouchdb-adapter-memory": "^9.0.0",
     "pouchdb-mapreduce": "^9.0.0",
     "pouchdb-replication": "^9.0.0"
+  },
+  "overrides": {
+    "uuid": "^11.1.1"
   }
 }
