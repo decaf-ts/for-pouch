@@ -6,7 +6,7 @@ This package integrates PouchDB with the decaf-ts data and decorator ecosystem. 
 - Configuration and flag types tailored for PouchDB usage.
 - A module entry that wires flavour-specific decorations for createdBy/updatedBy when the module is loaded.
 
-Dependency note: the repository currently uses the PouchDB 9.x plugin line for core packages (`pouchdb-core`, `pouchdb-find`, adapters, mapreduce, replication). `pouchdb-adapter-websql` is intentionally pinned to the separate 7.x plugin line because WebSQL is no longer part of the default PouchDB distribution.
+Dependency note: the repository currently uses the PouchDB 9.x plugin line for core packages (`pouchdb-core`, `pouchdb-find`, adapters, mapreduce, replication). WebSQL is not a direct dependency of this package.
 
 The intent of this library is to offer an ergonomic, type-safe repository pattern on top of PouchDB/CouchDB, including:
 - CRUD operations (single and bulk) with proper error mapping.

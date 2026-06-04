@@ -5,7 +5,7 @@
 ## Purpose at a Glance
 A PouchDB-backed adapter and repository integration for the decaf-ts ecosystem. It provides a Repository implementation powered by PouchDB/CouchDB features (Mango queries, indexes, bulk ops, and relations), along with configuration types and constants to wire models to a PouchDB database (local or remote) using decorators.
 
-This package targets the current PouchDB 9.x plugin line. The only exception is `pouchdb-adapter-websql`, which remains on its separate 7.x plugin track because WebSQL was split out of the default PouchDB distribution.
+This package targets the current PouchDB 9.x plugin line. WebSQL is not included as a direct dependency because it is not part of the current supported plugin set for this package.
 
 > Release docs refreshed on 2025-11-26. See [workdocs/reports/RELEASE_NOTES.md](./workdocs/reports/RELEASE_NOTES.md) for ticket summaries.
 
@@ -43,7 +43,7 @@ This package integrates PouchDB with the decaf-ts data and decorator ecosystem. 
 - Configuration and flag types tailored for PouchDB usage.
 - A module entry that wires flavour-specific decorations for createdBy/updatedBy when the module is loaded.
 
-Dependency note: the repository currently uses the PouchDB 9.x plugin line for core packages (`pouchdb-core`, `pouchdb-find`, adapters, mapreduce, replication). `pouchdb-adapter-websql` is intentionally pinned to the separate 7.x plugin line because WebSQL is no longer part of the default PouchDB distribution.
+Dependency note: the repository currently uses the PouchDB 9.x plugin line for core packages (`pouchdb-core`, `pouchdb-find`, adapters, mapreduce, replication). WebSQL is not a direct dependency of this package.
 
 The intent of this library is to offer an ergonomic, type-safe repository pattern on top of PouchDB/CouchDB, including:
 - CRUD operations (single and bulk) with proper error mapping.
@@ -130,7 +130,7 @@ Below are practical, valid TypeScript examples based on the repository’s tests
 
 You can work with a local/in-memory database (useful for tests) or a remote CouchDB-compatible server.
 
-The package expects the current PouchDB 9.x plugin line. If you need WebSQL, use the standalone `pouchdb-adapter-websql` plugin, which remains on the separate 7.x line.
+The package expects the current PouchDB 9.x plugin line. WebSQL is not bundled here and is not part of the supported dependency set for this package.
 
 ```ts
 import { PouchAdapter, DefaultLocalStoragePath, VERSION } from "@decaf-ts/for-pouch";
