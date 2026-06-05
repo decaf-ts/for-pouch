@@ -9,6 +9,10 @@ import { AdapterFlags } from "@decaf-ts/core";
  */
 export interface PouchFlags extends AdapterFlags {
   /**
+   * @description When true, automatically attach generated named CouchDB indexes
+   */
+  forceNamedIndexes?: boolean;
+  /**
    * @description Unique identifier for the current user or operation
    */
   UUID: string;

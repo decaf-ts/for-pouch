@@ -9,7 +9,6 @@ import {
   MangoQuery,
   ViewResponse,
 } from "@decaf-ts/for-couchdb";
-import { IndexError } from "@decaf-ts/for-couchdb";
 import {
   BaseError,
   ConflictError,
@@ -41,6 +40,7 @@ import BulkGetResponse = PouchDB.Core.BulkGetResponse;
 import FindResponse = PouchDB.Find.FindResponse;
 import { PouchConfig, PouchFlags } from "./types";
 import { DefaultLocalStoragePath, PouchFlavour } from "./constants";
+import { IndexError } from "./IndexError";
 import { PouchRepository } from "./PouchRepository";
 import PouchDB from "pouchdb-core";
 import * as PouchMapReduce from "pouchdb-mapreduce";
