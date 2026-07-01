@@ -228,7 +228,10 @@ export class PouchAdapter extends CouchDBAdapter<
    */
   override getClient(): Database {
     if (!this._client) {
-      this._client = this.buildClient(this.config.user, this.config.password);
+      this._client = this.buildClient(
+        this.config.couchUser ?? this.config.user,
+        this.config.couchPassword ?? this.config.password
+      );
     }
     return this._client as Database;
   }

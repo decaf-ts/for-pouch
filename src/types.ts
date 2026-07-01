@@ -34,7 +34,15 @@ export interface PouchFlags extends AdapterFlags {
  * @memberOf module:for-pouch
  */
 export type PouchConfig = {
+  couchUser?: string;
+  couchPassword?: string;
+  /**
+   * @deprecated Use `couchUser` instead.
+   */
   user?: string;
+  /**
+   * @deprecated Use `couchPassword` instead.
+   */
   password?: string;
   adminUser?: string;
   adminPassword?: string;
