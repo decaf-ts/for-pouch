@@ -135,7 +135,7 @@ describe("Pouch MethodQueryBuilder Decorator", () => {
       expect(results).toEqual([]);
     });
 
-    it("should resolve the prepared existsNotOf path for a negated condition", async () => {
+    it("should resolve the prepared listByNotExists path and return the full negated list", async () => {
       const stmt = userRepo
         .override({ forcePrepareSimpleQueries: true })
         .select()
@@ -144,10 +144,14 @@ describe("Pouch MethodQueryBuilder Decorator", () => {
       await stmt.prepare();
 
       expect((stmt as any).prepared).toMatchObject({
-        method: "existsNotOf",
+        method: "listByNotExists",
         args: ["nickname"],
       });
-      await expect(stmt.execute()).resolves.toBe(true);
+
+      const results = await stmt.execute();
+      expect(Array.isArray(results)).toBe(true);
+      expect(results.length).toBe(10);
+      expect(results.every((u: any) => u.nickname === undefined)).toBe(true);
     });
   });
 
