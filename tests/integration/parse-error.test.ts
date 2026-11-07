@@ -1,3 +1,4 @@
+import { it } from "@decaf-ts/for-testing";
 import { PouchAdapter } from "../../src";
 import { BaseError, ConflictError, NotFoundError } from "@decaf-ts/db-decorators";
 

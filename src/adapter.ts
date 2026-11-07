@@ -884,7 +884,7 @@ export class PouchAdapter extends CouchDBAdapter<
     reason?: string
   ): E {
     if (err instanceof BaseError) return err as E;
-    let code: string = "";
+    let code: string;
     if (typeof err === "string") {
       code = err;
       if (code.match(/already exist|update conflict/g))

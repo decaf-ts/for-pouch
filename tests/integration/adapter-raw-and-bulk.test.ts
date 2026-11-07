@@ -1,3 +1,4 @@
+import { it } from "@decaf-ts/for-testing";
 import { PouchAdapter } from "../../src";
 import { NanoAdapter } from "@decaf-ts/for-nano";
 import { ConflictError } from "@decaf-ts/db-decorators";

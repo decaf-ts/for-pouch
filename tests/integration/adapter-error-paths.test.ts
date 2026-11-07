@@ -1,3 +1,4 @@
+import { it } from "@decaf-ts/for-testing";
 import { PouchAdapter } from "../../src";
 import { CouchDBKeys } from "@decaf-ts/for-couchdb";
 import { BaseError } from "@decaf-ts/db-decorators";

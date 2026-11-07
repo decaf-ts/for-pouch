@@ -1,3 +1,4 @@
+import { it } from "@decaf-ts/for-testing";
 import { createdByOnPouchCreateUpdate } from "../../src/adapter";
 import { Context } from "@decaf-ts/db-decorators";
 import { UnsupportedError } from "@decaf-ts/core";

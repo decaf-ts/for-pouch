@@ -43,7 +43,7 @@
     "lint-fix": "eslint --fix .",
     "prepare-pr": "npm run lint-fix && npm run build:prod && npm run coverage && npm run docs",
     "prepare-release": "npm run lint-fix && npm run build:prod && npm run coverage && npm run docs",
-    "release": "./bin/tag-release.sh",
+    "release": "tag-release",
     "clean-publish": "npx clean-publish",
     "drawings": "for FILE in workdocs/drawings/*.drawio; do echo \"converting $FILE to image...\" && docker run --rm -v $(pwd):/data rlespinasse/drawio-export --format png $FILE; done && cp -rf workdocs/drawings/export/* workdocs/resources/",
     "uml": "cd workdocs/uml && for FILE in ./*.puml; do docker run --rm -v $(pwd):/work -w /work miy4/plantuml -DPLANTUML_LIMIT_SIZE=8192 -tpng $FILE; done && cd ../.. && cp -fr workdocs/uml/*.png workdocs/resources/",
@@ -53,7 +53,7 @@
     "repo:setup": "codex exec \"$(cat ./.codex/prompts/repo-setup.md)\nbase_path is ./\"",
     "repo:doc": "codex exec \"$(cat ./.codex/prompts/doc.md) $(cat ./.codex/prompts/bulk-docs.md)\nbase_path is ./\"",
     "repo:tests": "codex exec \"$(cat ./.codex/prompts/bulk-tests.md)\nbase_path is ./ and coverage is 95%\" -s workspace-write",
-    "prepare-it-tests": "docker compose --project-directory docker up -d --wait",
+    "prepare-it-tests": "docker compose --project-directory docker up -d --wait replica-0 replica-1 replica-2 && docker compose --project-directory docker run --rm booter",
     "repo:readme": "codex exec \"$(cat ./.codex/prompts/update-readme.md)\nbase_path is ./\"",
     "repo:pr": "npm run repo:doc && npm run repo:tests && npm run repo:readme",
     "sync-codex": "./bin/sync-codex.sh"
@@ -90,23 +90,24 @@
   },
   "homepage": "https://github.com/decaf-ts/for-pouch#readme",
   "devDependencies": {
-    "@decaf-ts/cli": "latest",
-    "@decaf-ts/for-nano": "latest",
-    "@decaf-ts/utils": "latest",
+    "@decaf-ts/cli": "^0.14.0",
+    "@decaf-ts/for-nano": "^0.16.0",
+    "@decaf-ts/utils": "^2.0.6",
     "@types/jest": "^30.0.0",
     "@types/pouchdb": "^6.4.2",
     "@types/pouchdb-core": "^7.0.15",
-    "@types/transform-pouch": "^1.0.6"
+    "@types/transform-pouch": "^1.0.6",
+    "@decaf-ts/for-testing": "^1.3.7"
   },
   "dependencies": {
-    "@decaf-ts/core": "latest",
-    "@decaf-ts/db-decorators": "latest",
-    "@decaf-ts/decoration": "latest",
-    "@decaf-ts/decorator-validation": "latest",
-    "@decaf-ts/for-couchdb": "latest",
-    "@decaf-ts/injectable-decorators": "latest",
-    "@decaf-ts/logging": "latest",
-    "@decaf-ts/transactional-decorators": "latest",
+    "@decaf-ts/core": "^0.34.0",
+    "@decaf-ts/db-decorators": "^0.20.0",
+    "@decaf-ts/decoration": "^0.20.0",
+    "@decaf-ts/decorator-validation": "^1.24.0",
+    "@decaf-ts/for-couchdb": "^0.18.0",
+    "@decaf-ts/injectable-decorators": "^1.21.0",
+    "@decaf-ts/logging": "^0.30.3",
+    "@decaf-ts/transactional-decorators": "^0.14.0",
     "pouchdb-core": "^9.0.0",
     "pouchdb-find": "^9.0.0"
   },
@@ -120,8 +121,37 @@
     "pouchdb-replication": "^9.0.0"
   },
   "overrides": {
+    "open": "^11.0.4",
+    "glob": "^14.0.4",
+    "minimatch": "^11.0.5",
+    "eslint": {
+      "minimatch": "^11.0.5"
+    },
+    "dpdm": {
+      "glob": "^14.0.4",
+      "minimatch": "^11.0.5"
+    },
+    "typescript-eslint": {
+      "minimatch": "^11.0.5"
+    },
+    "test-exclude": {
+      ".": "^8.0.0",
+      "glob": "^14.0.4",
+      "minimatch": "^11.0.5"
+    },
     "uuid": "^11.1.1",
-    "test-exclude": "^7.0.2",
-    "brace-expansion": "^5.0.8"
+    "brace-expansion": "^5.0.8",
+    "@decaf-ts/core": "^0.34.0",
+    "@decaf-ts/db-decorators": "^0.20.0",
+    "@decaf-ts/decoration": "^0.20.0",
+    "@decaf-ts/decorator-validation": "^1.24.0",
+    "@decaf-ts/for-couchdb": "^0.18.0",
+    "@decaf-ts/injectable-decorators": "^1.21.0",
+    "@decaf-ts/logging": "^0.30.3",
+    "@decaf-ts/transactional-decorators": "^0.14.0",
+    "@decaf-ts/for-nano": "^0.16.0",
+    "@decaf-ts/cli": "^0.14.0",
+    "@decaf-ts/utils": "^2.0.6",
+    "@decaf-ts/for-testing": "^1.3.7"
   }
 }
